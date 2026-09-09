@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  REVIEWER
+  OPERATOR
+}
+
+enum SessionStatus {
+  STARTED
+  PHOTOS_RECEIVED
+  CLASSIFYING
+  QUESTIONING
+  MATCHING
+  SYNCED
+  ABANDONED
+  NEEDS_CALLBACK
+}
+
+enum PhotoType {
+  INTERIOR_FLOOR_TO_CEILING
+  EXTERIOR_FULL_ELEVATION
+  CORNER_CLOSEUP
+}
+
+enum ScaleReference {
+  HEAD_HEIGHT
+  BRICK_COURSING
+  INTERIOR_FIXTURE
+  DELIBERATE_SCALE_OBJECT
+  FRAME_FACE
+}
+
+enum EstimateStatus {
+  SYNC_PENDING
+
+  SYNC_FAILED
+
+  CREATED_UNSENT
+  SENT
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         UserRole @default(OPERATOR)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  inviteCodeId String?     @map("invite_code_id") @db.Uuid
+  inviteCode   InviteCode? @relation(fields: [inviteCodeId], references: [id], onDelete: SetNull)
+
+  reviewerEdits ReviewerEdit[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model InviteCode {
+  id   String @id @default(uuid(7)) @db.Uuid
+  code String @unique
+
+  grantsRole UserRole @default(OPERATOR) @map("grants_role")
+
+  maxUses   Int       @default(1) @map("max_uses")
+  useCount  Int       @default(0) @map("use_count")
+  expiresAt DateTime? @map("expires_at")
+  isActive  Boolean   @default(true) @map("is_active")
+  note      String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  redeemedBy User[]
+
+  @@index([isActive])
+  @@map("invite_codes")
+}
+
+model FranchiseLocation {
+  id   String @id @default(uuid(7)) @db.Uuid
+  name String
+  slug String @unique
+
+  territoryDefinition Json @default("{\"zipCodes\":[],\"geoBoundary\":null}") @map("territory_definition")
+
+  housecallProAccountId String? @map("housecall_pro_account_id")
+
+  apiKeyEncrypted String? @map("api_key_encrypted")
+
+  priceBookId String? @map("price_book_id")
+  isActive    Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customerSessions CustomerSession[]
+
+  @@index([isActive])
+  @@map("franchise_locations")
+}
+
+model CustomerSession {
+  id     String        @id @default(uuid(7)) @db.Uuid
+  status SessionStatus @default(STARTED)
+
+  customerName   String? @map("customer_name")
+  customerPhone  String? @map("customer_phone")
+  customerEmail  String? @map("customer_email")
+  serviceAddress String? @map("service_address")
+
+  franchiseLocationId String?            @map("franchise_location_id") @db.Uuid
+  franchiseLocation   FranchiseLocation? @relation(fields: [franchiseLocationId], references: [id], onDelete: SetNull)
+
+  resumeToken String @unique @map("resume_token")
+
+  conversationState Json @default("{\"messages\":[]}") @map("conversation_state")
+
+  outstandingQuestions String[] @map("outstanding_questions")
+
+  lastCustomerMessageAt DateTime? @map("last_customer_message_at")
+  abandonedAt           DateTime? @map("abandoned_at")
+
+  isTestRecord Boolean @default(false) @map("is_test_record")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  photos             SessionPhoto[]
+  classifications    Classification[]
+  dimensionEstimates DimensionEstimate[]
+  catalogueMatches   CatalogueMatch[]
+  estimate           Estimate?
+
+  @@index([status])
+  @@index([customerPhone])
+  @@index([customerEmail])
+  @@index([franchiseLocationId])
+  @@index([createdAt])
+
+  @@index([status, lastCustomerMessageAt])
+  @@map("sessions")
+}
+
+model SessionPhoto {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  photoType PhotoType @map("photo_type")
+
+  storageKey  String @map("storage_key")
+  storageUrl  String @map("storage_url")
+  contentType String @map("content_type")
+  byteSize    Int    @map("byte_size")
+
+  originalWidth  Int @map("original_width")
+  originalHeight Int @map("original_height")
+
+  isHeicConverted        Boolean @default(false) @map("is_heic_converted")
+  exifOrientationApplied Boolean @default(false) @map("exif_orientation_applied")
+  metadataStripped       Boolean @default(false) @map("metadata_stripped")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([sessionId, photoType])
+  @@index([sessionId])
+  @@map("session_photos")
+}
+
+model Classification {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  assetType String @map("asset_type")
+  issueType String @map("issue_type")
+
+  frameMaterialHint String? @map("frame_material_hint")
+
+  confidenceScore        Float   @map("confidence_score")
+  photoQualityAssessment String? @map("photo_quality_assessment")
+
+  isLowConfidence Boolean @default(false) @map("is_low_confidence")
+
+  rawModelOutput Json   @map("raw_model_output")
+  modelVersion   String @map("model_version")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([isLowConfidence])
+  @@map("classifications")
+}
+
+model DimensionEstimate {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  widthInches   Float @map("width_inches")
+  heightInches  Float @map("height_inches")
+  squareFootage Float @map("square_footage")
+
+  scaleReferenceUsed ScaleReference @map("scale_reference_used")
+
+  customerConfirmed       Boolean @default(false) @map("customer_confirmed")
+  customerCorrectedWidth  Float?  @map("customer_corrected_width")
+  customerCorrectedHeight Float?  @map("customer_corrected_height")
+
+  priceBand String? @map("price_band")
+
+  openingIndex Int? @map("opening_index")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("dimension_estimates")
+}
+
+model CatalogueMatch {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  housecallProServiceId String @map("housecall_pro_service_id")
+  serviceName           String @map("service_name")
+  quantity              Int    @default(1)
+
+  isBaseItem          Boolean @default(false) @map("is_base_item")
+  isAdditionalOpening Boolean @default(false) @map("is_additional_opening")
+  openingIndex        Int?    @map("opening_index")
+
+  matchConfidence Float @map("match_confidence")
+
+  needsReviewerCompletion Boolean @default(false) @map("needs_reviewer_completion")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([needsReviewerCompletion])
+  @@map("catalogue_matches")
+}
+
+model Estimate {
+  id String @id @default(uuid(7)) @db.Uuid
+
+  sessionId String          @unique @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  housecallProEstimateId String? @unique @map("housecall_pro_estimate_id")
+  housecallProCustomerId String? @map("housecall_pro_customer_id")
+
+  idempotencyKey String @unique @map("idempotency_key")
+
+  status EstimateStatus @default(SYNC_PENDING)
+
+  structuredNotesHeader Json? @map("structured_notes_header")
+
+  syncAttempts  Int       @default(0) @map("sync_attempts")
+  lastSyncError String?   @map("last_sync_error")
+  syncedAt      DateTime? @map("synced_at")
+
+  isTestRecord Boolean @default(false) @map("is_test_record")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  reviewerEdits ReviewerEdit[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("estimates")
+}
+
+model ReviewerEdit {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  estimateId String   @map("estimate_id") @db.Uuid
+  estimate   Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+
+  reviewerUserId String @map("reviewer_user_id") @db.Uuid
+
+  reviewer       User   @relation(fields: [reviewerUserId], references: [id], onDelete: Restrict)
+
+  fieldChanged  String  @map("field_changed")
+  originalValue String? @map("original_value")
+  newValue      String? @map("new_value")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([estimateId])
+  @@index([reviewerUserId])
+  @@index([fieldChanged])
+  @@map("reviewer_edits")
+}
+
+model RateLimitLog {
+  id        String @id @default(uuid(7)) @db.Uuid
+  ipAddress String @unique @map("ip_address")
+
+  sessionCountToday Int @default(0) @map("session_count_today")
+
+  countWindowStartedAt DateTime @default(now()) @map("count_window_started_at")
+
+  lastSessionAt DateTime? @map("last_session_at")
+  blockedUntil  DateTime? @map("blocked_until")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([blockedUntil])
+  @@map("rate_limit_log")
+}

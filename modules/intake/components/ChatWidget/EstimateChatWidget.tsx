@@ -1,0 +1,176 @@
+"use client";
+
+import { MessageSquare, Send, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { BRAND } from "@/core/config/branding";
+import { cn } from "@/core/utils/cn";
+import { ChatTranscript } from "@/modules/intake/components/ChatWidget/ChatTranscript";
+import { ContactDetailsForm } from "@/modules/intake/components/ChatWidget/ContactDetailsForm";
+import {
+  PhotoCompleteNotice,
+  PhotoUploadRow,
+  PhotoUploadUnavailableNotice,
+} from "@/modules/intake/components/ChatWidget/PhotoUploadRow";
+import { useIntakeSession } from "@/modules/intake/components/ChatWidget/useIntakeSession";
+import { OPEN_ESTIMATE_CHAT_EVENT } from "@/modules/intake/components/open-chat-event";
+
+export function EstimateChatWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const intake = useIntakeSession();
+
+  useEffect(() => {
+    const handleOpenRequest = () => setIsOpen(true);
+    window.addEventListener(OPEN_ESTIMATE_CHAT_EVENT, handleOpenRequest);
+    return () =>
+      window.removeEventListener(OPEN_ESTIMATE_CHAT_EVENT, handleOpenRequest);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) void intake.start();
+  }, [isOpen, intake]);
+
+  const session = intake.session;
+  const needsContactDetails =
+    session !== null &&
+    session.outstandingPhotoTypes.length === 0 &&
+    session.outstandingQuestions.includes("CONTACT_DETAILS");
+
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="bg-brand-700 hover:bg-brand-800 fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white shadow-lg"
+      >
+        <MessageSquare className="size-4" aria-hidden="true" />
+        Get an estimate
+      </button>
+    );
+  }
+
+  return (
+    <section
+      aria-label="Estimate assistant"
+      className="ring-border-subtle fixed inset-x-0 bottom-0 z-40 flex h-[min(38rem,90dvh)] flex-col overflow-hidden bg-white shadow-2xl ring-1 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[26rem] sm:rounded-2xl"
+    >
+      <header className="border-border-subtle bg-brand-700 flex items-start justify-between gap-3 border-b px-4 py-3.5 text-white">
+        <div>
+          <p className="text-sm font-semibold">
+            {BRAND.companyShortName} estimate assistant
+          </p>
+          <p className="text-brand-100 text-xs">
+            {session?.locationName
+              ? `Handled by ${session.locationName}`
+              : "A person reviews every estimate"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          aria-label="Close the estimate assistant"
+          className="hover:bg-brand-800 rounded-lg p-1"
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      </header>
+
+      {intake.error ? (
+        <div className="border-b border-red-200 bg-red-50 px-4 py-2.5">
+          <p className="text-sm text-red-900">{intake.error}</p>
+          <div className="mt-1.5 flex gap-3">
+            <button
+              type="button"
+              onClick={intake.dismissError}
+              className="text-xs font-semibold text-red-800 underline"
+            >
+              Dismiss
+            </button>
+            <a
+              href={BRAND.phoneHref}
+              className="text-xs font-semibold text-red-800 underline"
+            >
+              Call {BRAND.phone}
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      {intake.isStarting || !session ? (
+        <div className="flex flex-1 items-center justify-center px-6 text-center">
+          <p className="text-sm text-slate-500">
+            {intake.error ? "Could not start a session." : "Starting…"}
+          </p>
+        </div>
+      ) : (
+        <>
+          <ChatTranscript
+            entries={session.transcript}
+            isBusy={intake.isSending}
+          />
+
+          <div className="border-border-subtle bg-surface-muted space-y-2 border-t px-4 py-3">
+            {!session.photoUploadAvailable ? (
+              <PhotoUploadUnavailableNotice />
+            ) : session.outstandingPhotoTypes.length > 0 ? (
+              session.outstandingPhotoTypes.map((photoType) => (
+                <PhotoUploadRow
+                  key={photoType}
+                  photoType={photoType}
+                  isUploading={intake.uploadingPhotoType === photoType}
+                  isDisabled={intake.uploadingPhotoType !== null}
+                  onSelect={(file) => void intake.uploadPhoto(photoType, file)}
+                />
+              ))
+            ) : (
+              <PhotoCompleteNotice />
+            )}
+
+            {needsContactDetails ? (
+              <ContactDetailsForm
+                isSubmitting={intake.isSending}
+                onSubmit={(contactDraft) =>
+                  void intake.submitContactDetails(contactDraft)
+                }
+              />
+            ) : null}
+          </div>
+
+          <form
+            className="border-border-subtle flex items-end gap-2 border-t px-3 py-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const trimmed = draft.trim();
+              if (trimmed.length === 0 || intake.isSending) return;
+              setDraft("");
+              void intake.sendMessage(trimmed);
+            }}
+          >
+            <label className="flex-1">
+              <span className="sr-only">Your message</span>
+              <textarea
+                rows={1}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder="Type a message"
+                className="ring-border-strong focus:ring-brand-600 max-h-24 w-full resize-none rounded-lg bg-white px-3 py-2 text-sm ring-1 focus:ring-2"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={draft.trim().length === 0 || intake.isSending}
+              aria-label="Send message"
+              className={cn(
+                "bg-brand-700 hover:bg-brand-800 rounded-lg p-2.5 text-white",
+                "disabled:bg-brand-300",
+              )}
+            >
+              <Send className="size-4" aria-hidden="true" />
+            </button>
+          </form>
+        </>
+      )}
+    </section>
+  );
+}
