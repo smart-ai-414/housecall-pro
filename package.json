@@ -15,6 +15,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "verify": "tsx scripts/verify-pipeline.ts",
+    "hcp:smoke": "tsx scripts/smoke-test-hcp.ts",
+    "setup:location": "tsx scripts/setup-location.ts",
+    "hcp:cleanup": "tsx scripts/cleanup-test-records.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

@@ -11,7 +11,7 @@ import type {
 
 const STORAGE_KEY = "glassbot.intake.credentials";
 
-interface StoredCredentials {
+export interface StoredCredentials {
   sessionId: string;
   resumeToken: string;
 }
@@ -91,7 +91,10 @@ export interface IntakeSessionController {
   dismissError: () => void;
 }
 
-export function useIntakeSession(): IntakeSessionController {
+export function useIntakeSession(
+  resumeCredentials?: StoredCredentials | null,
+  turnstileToken?: string | null,
+): IntakeSessionController {
   const [session, setSession] = useState<IntakeSessionView | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -124,7 +127,7 @@ export function useIntakeSession(): IntakeSessionController {
     setError(null);
 
     try {
-      const stored = readStoredCredentials();
+      const stored = resumeCredentials ?? readStoredCredentials();
 
       if (stored) {
         try {
@@ -132,6 +135,7 @@ export function useIntakeSession(): IntakeSessionController {
             "/api/intake/messages",
             { ...stored, message: "I am back." },
           );
+          writeStoredCredentials(stored);
           setSession(resumed);
           return;
         } catch {
@@ -141,7 +145,10 @@ export function useIntakeSession(): IntakeSessionController {
 
       const started = await postJson<IntakeSessionView>(
         "/api/intake/sessions",
-        { clientRenderedAt: mountedAtRef.current || Date.now() },
+        {
+          clientRenderedAt: mountedAtRef.current || Date.now(),
+          ...(turnstileToken ? { turnstileToken } : {}),
+        },
       );
 
       writeStoredCredentials({
@@ -155,7 +162,7 @@ export function useIntakeSession(): IntakeSessionController {
       setIsStarting(false);
       startInFlightRef.current = false;
     }
-  }, [session]);
+  }, [resumeCredentials, session, turnstileToken]);
 
   const sendMessage = useCallback(
     async (message: string) => {

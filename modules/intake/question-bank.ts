@@ -91,9 +91,9 @@ export const QUESTION_BANK: Record<QuestionId, BankedQuestion> = {
 export const MAX_QUESTIONS_PER_SESSION = 4;
 
 export const OPENING_QUESTION_SEQUENCE: readonly QuestionId[] = [
-  "WHAT_HAPPENED",
-  "SERVICE_ADDRESS",
   "CONTACT_DETAILS",
+  "SERVICE_ADDRESS",
+  "WHAT_HAPPENED",
 ];
 
 export function isQuestionId(value: unknown): value is QuestionId {

@@ -20,6 +20,11 @@ export interface RoutableLocation {
 
 export type TerritoryRoutingResult =
   | { outcome: "ROUTED"; location: RoutableLocation }
+  | {
+      outcome: "ROUTED_BY_SOLE_LOCATION";
+      location: RoutableLocation;
+      zipCode: string | null;
+    }
   | { outcome: "NO_ZIP_IN_ADDRESS" }
   | { outcome: "NO_TERRITORY_MATCH"; zipCode: string }
   | {
@@ -27,6 +32,15 @@ export type TerritoryRoutingResult =
       zipCode: string;
       candidates: RoutableLocation[];
     };
+
+export function routedLocationOf(
+  result: TerritoryRoutingResult,
+): RoutableLocation | null {
+  return result.outcome === "ROUTED" ||
+    result.outcome === "ROUTED_BY_SOLE_LOCATION"
+    ? result.location
+    : null;
+}
 
 const ZIP_IN_ADDRESS_PATTERN = /\b(\d{5})(?:-\d{4})?\b/g;
 
@@ -81,9 +95,6 @@ export async function resolveFranchiseLocation({
   coordinates?: Coordinates;
 }): Promise<TerritoryRoutingResult> {
   const zipCode = extractZipCode(serviceAddress);
-  if (!zipCode) {
-    return { outcome: "NO_ZIP_IN_ADDRESS" };
-  }
 
   const locations = await prisma.franchiseLocation.findMany({
     where: { isActive: true },
@@ -99,6 +110,27 @@ export async function resolveFranchiseLocation({
     orderBy: { name: "asc" },
   });
 
+  const toRoutable = (location: (typeof locations)[number]): RoutableLocation => ({
+    id: location.id,
+    name: location.name,
+    slug: location.slug,
+    priceBookId: location.priceBookId,
+    housecallProAccountId: location.housecallProAccountId,
+    hasApiKey: location.apiKeyEncrypted !== null,
+  });
+
+  const soleLocation = locations.length === 1 ? locations[0] : null;
+
+  if (!zipCode) {
+    return soleLocation
+      ? {
+          outcome: "ROUTED_BY_SOLE_LOCATION",
+          location: toRoutable(soleLocation),
+          zipCode: null,
+        }
+      : { outcome: "NO_ZIP_IN_ADDRESS" };
+  }
+
   const matches = locations.filter((location) => {
     const territory = parseTerritoryDefinition(location.territoryDefinition);
 
@@ -109,17 +141,16 @@ export async function resolveFranchiseLocation({
       : false;
   });
 
-  const candidates: RoutableLocation[] = matches.map((location) => ({
-    id: location.id,
-    name: location.name,
-    slug: location.slug,
-    priceBookId: location.priceBookId,
-    housecallProAccountId: location.housecallProAccountId,
-    hasApiKey: location.apiKeyEncrypted !== null,
-  }));
+  const candidates: RoutableLocation[] = matches.map(toRoutable);
 
   if (candidates.length === 0) {
-    return { outcome: "NO_TERRITORY_MATCH", zipCode };
+    return soleLocation
+      ? {
+          outcome: "ROUTED_BY_SOLE_LOCATION",
+          location: toRoutable(soleLocation),
+          zipCode,
+        }
+      : { outcome: "NO_TERRITORY_MATCH", zipCode };
   }
 
   if (candidates.length > 1) {
@@ -133,6 +164,12 @@ export function describeRoutingResult(result: TerritoryRoutingResult): string {
   switch (result.outcome) {
     case "ROUTED":
       return `Routed to ${result.location.name}`;
+    case "ROUTED_BY_SOLE_LOCATION":
+      return `Routed to ${result.location.name}, the only active location${
+        result.zipCode
+          ? `, though ZIP ${result.zipCode} is outside its territory`
+          : ", though the address carried no ZIP code"
+      }`;
     case "NO_ZIP_IN_ADDRESS":
       return "No ZIP code found in the service address";
     case "NO_TERRITORY_MATCH":

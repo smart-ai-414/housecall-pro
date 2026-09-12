@@ -130,6 +130,9 @@ New functionality goes in `modules/<capability>/`.
   way they are: the security model, the idempotency rule, the image pipeline
   ordering, and the traps in this particular stack. Source files carry no
   comments, so this is where the reasoning lives.
+- **[docs/EMBEDDING.md](docs/EMBEDDING.md)** — the iframe snippet for the
+  customer's website, and why a script embed cannot work against the
+  same-origin guard.
 - **[CLAUDE.md](CLAUDE.md)** — working rules for this repository.
 
 ## Status
@@ -137,7 +140,8 @@ New functionality goes in `modules/<capability>/`.
 - **Phase 1, foundation** — schema, invite-only auth, landing page, dashboard.
 - **Phase 2, integration** — chat widget, direct-to-storage photo upload, image
   pipeline, Housecall Pro client, session persistence, abandonment sweep, tenant
-  routing.
+  routing, public intake routes (`/estimate`, `/estimate/resume/[token]`),
+  durable photo links in estimate notes, Turnstile, and the session event log.
 - **Phase 3, perception** — Claude Vision classification and dimension
   estimation. Not built.
 - **Phase 4, pricing** — catalogue matching and gap analysis. Not built.

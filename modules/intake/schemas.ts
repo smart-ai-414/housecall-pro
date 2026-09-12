@@ -12,6 +12,7 @@ export const photoTypeSchema = z.enum(
 export const startSessionSchema = z.object({
   [BOT_HONEYPOT_FIELD_NAME]: z.string().optional(),
   clientRenderedAt: z.number().int().optional(),
+  turnstileToken: z.string().max(4096).optional(),
 });
 
 export const customerMessageSchema = z.object({

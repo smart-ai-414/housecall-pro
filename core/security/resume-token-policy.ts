@@ -1,0 +1,4 @@
+export const RESUME_TOKEN_TTL_DAYS = 7;
+
+export const RESUME_TOKEN_TTL_MS =
+  RESUME_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;

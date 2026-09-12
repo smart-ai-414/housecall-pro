@@ -30,6 +30,20 @@ enum PhotoType {
   CORNER_CLOSEUP
 }
 
+enum SessionEventType {
+  SESSION_CREATED
+  SESSION_RESUMED
+  MESSAGE_RECEIVED
+  PHOTO_UPLOADED
+  PHOTO_REJECTED
+  CONTACT_CAPTURED
+  ROUTING_RESOLVED
+  SYNC_STARTED
+  SYNC_SUCCEEDED
+  SYNC_FAILED
+  ABANDONED
+}
+
 enum ScaleReference {
   HEAD_HEIGHT
   BRICK_COURSING
@@ -138,6 +152,7 @@ model CustomerSession {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   photos             SessionPhoto[]
+  events             SessionEvent[]
   classifications    Classification[]
   dimensionEstimates DimensionEstimate[]
   catalogueMatches   CatalogueMatch[]
@@ -177,6 +192,22 @@ model SessionPhoto {
   @@unique([sessionId, photoType])
   @@index([sessionId])
   @@map("session_photos")
+}
+
+model SessionEvent {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  session   CustomerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  eventType SessionEventType @map("event_type")
+
+  detail Json @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("session_events")
 }
 
 model Classification {

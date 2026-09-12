@@ -1,3 +1,4 @@
+import { housecallProLeadSource } from "@/core/config/env";
 import { normalizePhone } from "@/core/utils/format";
 import type { HousecallProClient } from "@/modules/housecall-pro/client";
 import { HousecallProError } from "@/modules/housecall-pro/errors";
@@ -147,6 +148,7 @@ export async function createCustomer(
   const normalizedPhone = identity.phone
     ? normalizePhone(identity.phone)
     : null;
+  const leadSource = housecallProLeadSource();
 
   const payload: HousecallProCreateCustomerRequest = {
     first_name: applyTestPrefix(firstName),
@@ -155,6 +157,7 @@ export async function createCustomer(
     addresses: parseServiceAddress(identity.serviceAddress),
     ...(identity.email ? { email: identity.email } : {}),
     ...(normalizedPhone ? { mobile_number: normalizedPhone } : {}),
+    ...(leadSource ? { lead_source: leadSource } : {}),
   };
 
   return client.request<HousecallProCustomer>({

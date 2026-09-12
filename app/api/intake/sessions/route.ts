@@ -7,6 +7,7 @@ import {
   assertSameOriginRequest,
   inspectBotSignals,
 } from "@/core/security/request-guard";
+import { assertTurnstileTokenIsValid } from "@/core/security/turnstile";
 import { startSessionSchema } from "@/modules/intake/schemas";
 import { startIntakeSession } from "@/modules/intake/session-service";
 
@@ -31,9 +32,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = await startIntakeSession({
-      ipAddress: readClientIp(request.headers),
-    });
+    const ipAddress = readClientIp(request.headers);
+
+    await assertTurnstileTokenIsValid(payload.turnstileToken, ipAddress);
+
+    const session = await startIntakeSession({ ipAddress });
 
     return NextResponse.json(session, { status: 201 });
   } catch (error) {

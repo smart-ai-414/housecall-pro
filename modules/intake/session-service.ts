@@ -25,6 +25,7 @@ import {
   OPENING_QUESTION_SEQUENCE,
   QUESTION_BANK,
 } from "@/modules/intake/question-bank";
+import { recordSessionEvent } from "@/modules/intake/session-events";
 import { shouldMarkAsTestRecord } from "@/modules/housecall-pro/test-guard";
 import {
   isPhotoUploadAvailable,
@@ -38,20 +39,21 @@ import type {
 import {
   describeRoutingResult,
   resolveFranchiseLocation,
+  routedLocationOf,
 } from "@/modules/tenancy/territory-routing";
 
 const OPENING_MESSAGE_WITH_PHOTOS = [
   "Hi — I can get you an estimate for glass repair or replacement.",
   "",
-  `To start, send me two photos: ${PHOTO_TYPE_GUIDANCE.INTERIOR_FLOOR_TO_CEILING.instruction} Then ${PHOTO_TYPE_GUIDANCE.EXTERIOR_FULL_ELEVATION.instruction.toLowerCase()}`,
+  "First, your name, phone number and the address where the work is needed. That way we can still reach you if anything interrupts us.",
   "",
-  "I will read the size from the photos and ask you to check it. A glazier prices the work and sends you the estimate.",
+  "Then I will ask for two photos, read the size from them and ask you to check it. A glazier prices the work and sends you the estimate.",
 ].join("\n");
 
 const OPENING_MESSAGE_WITHOUT_PHOTOS = [
   "Hi — I can get your glass repair or replacement in front of our team.",
   "",
-  "Photo upload is not switched on yet, so tell me what happened in your own words and I will take your details. A glazier will follow up to measure and price the work.",
+  "Photo upload is not switched on yet. Start with your name, phone number and the service address, then tell me what happened in your own words. A glazier will follow up to measure and price the work.",
 ].join("\n");
 
 function openingMessage(): string {
@@ -90,6 +92,10 @@ export async function startIntakeSession({
       isTestRecord: shouldMarkAsTestRecord(),
     },
     select: { id: true, status: true, outstandingQuestions: true },
+  });
+
+  await recordSessionEvent(session.id, "SESSION_CREATED", {
+    photoUploadAvailable: isPhotoUploadAvailable(),
   });
 
   return {
@@ -192,18 +198,38 @@ export async function recordCustomerMessage({
   const session = await authenticateSession({ sessionId, resumeToken });
 
   const outstandingPhotoTypes = await outstandingPhotoTypesFor(sessionId);
+
+  const answeredNow = questionAnsweredByFreeText(session.outstandingQuestions);
+  const remainingQuestions = answeredNow
+    ? session.outstandingQuestions.filter((id) => id !== answeredNow)
+    : session.outstandingQuestions;
+
   const acknowledgement = buildAcknowledgement({
     outstandingPhotoTypes,
-    outstandingQuestions: session.outstandingQuestions,
+    outstandingQuestions: remainingQuestions,
   });
 
-  const nextState = appendMessages(
-    session.state,
-    createMessage("customer", message),
-    createMessage("assistant", acknowledgement),
+  const nextState = mergeCollectedDetails(
+    appendMessages(
+      session.state,
+      createMessage("customer", message),
+      createMessage("assistant", acknowledgement),
+    ),
+    answeredNow ? { answeredQuestionIds: [answeredNow] } : {},
   );
 
-  await persistState({ sessionId, state: nextState });
+  await persistState({
+    sessionId,
+    state: nextState,
+    outstandingQuestions: remainingQuestions,
+  });
+
+  await recordSessionEvent(sessionId, "MESSAGE_RECEIVED", {
+    characters: message.length,
+    answered: answeredNow,
+    outstandingPhotos: outstandingPhotoTypes.length,
+    outstandingQuestions: remainingQuestions.length,
+  });
 
   return {
     sessionId,
@@ -211,7 +237,7 @@ export async function recordCustomerMessage({
     status: session.status,
     transcript: visibleTranscript(nextState),
     outstandingPhotoTypes,
-    outstandingQuestions: session.outstandingQuestions,
+    outstandingQuestions: remainingQuestions,
     locationName: session.locationName,
     photoUploadAvailable: isPhotoUploadAvailable(),
   };
@@ -235,9 +261,20 @@ export async function recordContactDetails({
   const session = await authenticateSession({ sessionId, resumeToken });
 
   const routing = await resolveFranchiseLocation({ serviceAddress });
-  const routedLocationId =
-    routing.outcome === "ROUTED" ? routing.location.id : null;
+  const routedLocation = routedLocationOf(routing);
+  const routedLocationId = routedLocation?.id ?? null;
   const routingNote = describeRoutingResult(routing);
+
+  const outstandingPhotoTypes = await outstandingPhotoTypesFor(sessionId);
+
+  const acknowledgement = routedLocation
+    ? `Thanks. Your job will be handled by ${routedLocation.name}.`
+    : "Thanks. One of our team will confirm which of our locations covers that address.";
+
+  const nextStep =
+    outstandingPhotoTypes.length > 0
+      ? ` Now ${PHOTO_TYPE_GUIDANCE[outstandingPhotoTypes[0]].instruction.toLowerCase()}`
+      : " Tell me what happened to the glass in your own words.";
 
   const nextState = mergeCollectedDetails(
     appendMessages(
@@ -246,12 +283,7 @@ export async function recordContactDetails({
         "customer",
         `${name} · ${phone}${email ? ` · ${email}` : ""} · ${serviceAddress}`,
       ),
-      createMessage(
-        "assistant",
-        routedLocationId
-          ? `Thanks. Your job will be handled by ${routing.outcome === "ROUTED" ? routing.location.name : "our nearest branch"}.`
-          : "Thanks. One of our team will confirm which of our locations covers that address.",
-      ),
+      createMessage("assistant", `${acknowledgement}${nextStep}`),
       createMessage("system", `routing: ${routingNote}`),
     ),
     { name, phone: normalizePhone(phone), email, serviceAddress },
@@ -277,14 +309,22 @@ export async function recordContactDetails({
     },
   });
 
+  await recordSessionEvent(sessionId, "CONTACT_CAPTURED", {
+    hasEmail: email !== null,
+  });
+  await recordSessionEvent(sessionId, "ROUTING_RESOLVED", {
+    outcome: routing.outcome,
+    locationId: routedLocationId,
+  });
+
   return {
     sessionId,
     resumeToken,
     status: routedLocationId ? session.status : "NEEDS_CALLBACK",
     transcript: visibleTranscript(nextState),
-    outstandingPhotoTypes: await outstandingPhotoTypesFor(sessionId),
+    outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
-    locationName: routing.outcome === "ROUTED" ? routing.location.name : null,
+    locationName: routedLocation?.name ?? null,
     photoUploadAvailable: isPhotoUploadAvailable(),
     routingNote,
   };
@@ -304,7 +344,7 @@ export async function recordPhotoReceived({
 
   const nextMessage =
     outstandingPhotoTypes.length === 0
-      ? "Got both photos, thank you. Next I need your contact details and the service address."
+      ? "Got both photos, thank you. Tell me what happened to the glass in your own words."
       : `Got it. Now ${PHOTO_TYPE_GUIDANCE[outstandingPhotoTypes[0]].instruction.toLowerCase()}`;
 
   const nextState = appendMessages(
@@ -320,6 +360,11 @@ export async function recordPhotoReceived({
     outstandingPhotoTypes.length === 0 ? "PHOTOS_RECEIVED" : session.status;
 
   await persistState({ sessionId, state: nextState, status });
+
+  await recordSessionEvent(sessionId, "PHOTO_UPLOADED", {
+    photoType,
+    stillOutstanding: outstandingPhotoTypes.length,
+  });
 
   return {
     sessionId,
@@ -347,6 +392,25 @@ async function outstandingPhotoTypesFor(
   return REQUIRED_PHOTO_TYPES.filter((type) => !receivedTypes.has(type));
 }
 
+const QUESTIONS_ANSWERED_BY_THE_CONTACT_FORM: readonly string[] = [
+  "CONTACT_DETAILS",
+  "SERVICE_ADDRESS",
+];
+
+function questionAnsweredByFreeText(
+  outstandingQuestions: readonly string[],
+): string | null {
+  if (outstandingQuestions.includes("CONTACT_DETAILS")) return null;
+
+  return (
+    outstandingQuestions.find(
+      (id) =>
+        id in QUESTION_BANK &&
+        !QUESTIONS_ANSWERED_BY_THE_CONTACT_FORM.includes(id),
+    ) ?? null
+  );
+}
+
 function buildAcknowledgement({
   outstandingPhotoTypes,
   outstandingQuestions,
@@ -354,6 +418,10 @@ function buildAcknowledgement({
   outstandingPhotoTypes: readonly PhotoType[];
   outstandingQuestions: readonly string[];
 }): string {
+  if (outstandingQuestions.includes("CONTACT_DETAILS")) {
+    return `${QUESTION_BANK.CONTACT_DETAILS.prompt}\n\n${QUESTION_BANK.CONTACT_DETAILS.helper}`;
+  }
+
   if (outstandingPhotoTypes.length > 0) {
     return `Thanks. I still need one photo: ${PHOTO_TYPE_GUIDANCE[outstandingPhotoTypes[0]].instruction}`;
   }

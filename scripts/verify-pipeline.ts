@@ -19,6 +19,15 @@ import {
   verifyResumeToken,
 } from "../core/security/resume-token";
 import {
+  RESUME_TOKEN_TTL_DAYS,
+  RESUME_TOKEN_TTL_MS,
+} from "../core/security/resume-token-policy";
+import {
+  createPhotoAccessToken,
+  PHOTO_ACCESS_TTL_DAYS,
+  verifyPhotoAccessToken,
+} from "../core/security/photo-access-token";
+import {
   extractZipCode,
   isPointInsideBoundary,
 } from "../modules/tenancy/territory-routing";
@@ -237,6 +246,51 @@ async function main() {
   check(
     "Rejects a token repointed at another session",
     verifyResumeToken(swapped) === null,
+  );
+
+  const verified = verifyResumeToken(token);
+  check(
+    `Carries a ${RESUME_TOKEN_TTL_DAYS}-day expiry`,
+    verified !== null &&
+      verified.expiresAt.getTime() - verified.issuedAt.getTime() ===
+        RESUME_TOKEN_TTL_MS,
+  );
+
+  const tokenParts = token.split(".");
+  const stretched = [
+    tokenParts[0],
+    tokenParts[1],
+    (Date.now() + RESUME_TOKEN_TTL_MS * 10).toString(36),
+    tokenParts[3],
+  ].join(".");
+  check(
+    "Rejects a token whose expiry was stretched",
+    verifyResumeToken(stretched) === null,
+  );
+
+  console.log("\nPHOTO ACCESS TOKENS (durable links in estimate notes)");
+  const photoId = "018f2c3d-4e5a-7b6c-8d9e-0f1a2b3c4d5e";
+  const photoToken = createPhotoAccessToken(photoId);
+
+  check(
+    "Verifies and returns the photo",
+    verifyPhotoAccessToken(photoToken)?.photoId === photoId,
+  );
+  check(
+    "Rejects a flipped character",
+    verifyPhotoAccessToken(photoToken.slice(0, -1) + "Z") === null,
+  );
+  check(
+    "A resume token is not a photo token",
+    verifyPhotoAccessToken(token) === null,
+  );
+  check(
+    "A photo token is not a resume token",
+    verifyResumeToken(photoToken) === null,
+  );
+  check(
+    `Outlives a reviewer's working window (${PHOTO_ACCESS_TTL_DAYS} days)`,
+    PHOTO_ACCESS_TTL_DAYS >= 30,
   );
 
   console.log("\nTERRITORY ROUTING");

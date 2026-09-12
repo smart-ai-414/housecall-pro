@@ -2,7 +2,7 @@ import { TEST_RECORD_PREFIX } from "@/core/config/branding";
 import { AppError } from "@/core/errors";
 
 export function isLiveWriteEnvironment(): boolean {
-  return process.env.NODE_ENV === "production";
+  return process.env.HOUSECALL_PRO_LIVE_WRITES === "true";
 }
 
 export function shouldMarkAsTestRecord(): boolean {

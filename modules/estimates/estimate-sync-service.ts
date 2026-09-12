@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { BRAND } from "@/core/config/branding";
+import { publicAppUrl } from "@/core/config/env";
 import { prisma } from "@/core/db/prisma";
 import { AppError } from "@/core/errors";
 import {
@@ -16,6 +17,8 @@ import {
   shouldMarkAsTestRecord,
 } from "@/modules/housecall-pro/test-guard";
 import type { JsonObject } from "@/modules/intake/conversation-state";
+import { recordSessionEvent } from "@/modules/intake/session-events";
+import { buildDurablePhotoUrl } from "@/modules/photos/photo-link";
 import { PHOTO_TYPE_GUIDANCE } from "@/modules/photos/photo-service";
 import { createSignedReadUrl } from "@/modules/photos/storage";
 
@@ -123,7 +126,7 @@ export async function syncSessionToHousecallPro({
       franchiseLocationId: true,
       isTestRecord: true,
       photos: {
-        select: { photoType: true, storageKey: true },
+        select: { id: true, photoType: true, storageKey: true },
       },
       classifications: {
         orderBy: { createdAt: "desc" },
@@ -195,7 +198,7 @@ export async function syncSessionToHousecallPro({
     ? await prisma.estimate.update({
         where: { id: session.estimate.id },
         data: { syncAttempts: { increment: 1 }, lastSyncError: null },
-        select: { id: true, idempotencyKey: true },
+        select: { id: true, idempotencyKey: true, syncAttempts: true },
       })
     : await prisma.estimate.create({
         data: {
@@ -205,8 +208,13 @@ export async function syncSessionToHousecallPro({
           syncAttempts: 1,
           isTestRecord: session.isTestRecord || shouldMarkAsTestRecord(),
         },
-        select: { id: true, idempotencyKey: true },
+        select: { id: true, idempotencyKey: true, syncAttempts: true },
       });
+
+  await recordSessionEvent(session.id, "SYNC_STARTED", {
+    reason,
+    attempt: reservation.syncAttempts,
+  });
 
   try {
     const { client, locationName } = await createClientForLocation(
@@ -228,9 +236,13 @@ export async function syncSessionToHousecallPro({
       session.photos.map(async (photo) => ({
         label: PHOTO_TYPE_GUIDANCE[photo.photoType].label,
         storageKey: photo.storageKey,
-        signedUrl: await createSignedReadUrl(photo.storageKey),
+        signedUrl:
+          buildDurablePhotoUrl(photo.id) ??
+          (await createSignedReadUrl(photo.storageKey)),
       })),
     );
+
+    const photoLinksExpireSoon = publicAppUrl() === null;
 
     const classification = session.classifications[0] ?? null;
     const dimensions = session.dimensionEstimates[0] ?? null;
@@ -262,6 +274,11 @@ export async function syncSessionToHousecallPro({
     if (session.catalogueMatches.some((m) => m.needsReviewerCompletion)) {
       reviewerMustCheck.push(
         "At least one line item had no good catalogue match.",
+      );
+    }
+    if (photoLinksExpireSoon && photos.length > 0) {
+      reviewerMustCheck.push(
+        "PUBLIC_APP_URL is unset, so the photo links below expire within minutes. Open them now or set that variable and re-sync.",
       );
     }
     reviewerMustCheck.push(
@@ -329,6 +346,13 @@ export async function syncSessionToHousecallPro({
       data: { status: "SYNCED" },
     });
 
+    await recordSessionEvent(session.id, "SYNC_SUCCEEDED", {
+      housecallProEstimateId: estimate.id,
+      locationName,
+      photoCount: photos.length,
+      lineItemCount: session.catalogueMatches.length,
+    });
+
     console.info(
       `[estimate-sync] session ${session.id} -> estimate ${estimate.id} at ${locationName}`,
     );
@@ -345,6 +369,12 @@ export async function syncSessionToHousecallPro({
     await prisma.estimate.update({
       where: { id: reservation.id },
       data: { status: "SYNC_FAILED", lastSyncError: message.slice(0, 1000) },
+    });
+
+    await recordSessionEvent(session.id, "SYNC_FAILED", {
+      reason,
+      attempt: reservation.syncAttempts,
+      message: message.slice(0, 500),
     });
 
     console.error(`[estimate-sync] session ${session.id} failed`, error);

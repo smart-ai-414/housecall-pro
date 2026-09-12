@@ -108,6 +108,23 @@ export const housecallProEnv = memoizedPerProcess(() =>
   parseGroup("Housecall Pro", housecallProSchema),
 );
 
+function withoutTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+export function housecallProLeadSource(): string | null {
+  const configured = (process.env.HOUSECALL_PRO_LEAD_SOURCE ?? "").trim();
+  return configured === "" ? null : configured;
+}
+
+export function publicAppUrl(): string | null {
+  const candidate = process.env.PUBLIC_APP_URL ?? process.env.AUTH_URL ?? "";
+  if (candidate === "") return null;
+
+  const parsed = z.string().url().safeParse(candidate);
+  return parsed.success ? withoutTrailingSlash(parsed.data) : null;
+}
+
 const anthropicSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, "required"),
 });

@@ -1,8 +1,9 @@
 import { prisma } from "@/core/db/prisma";
 import type { SessionStatus } from "@/generated/prisma/enums";
 import { syncSessionToHousecallPro } from "@/modules/estimates/estimate-sync-service";
+import { recordSessionEvent } from "@/modules/intake/session-events";
 
-export const ABANDONMENT_WINDOW_MINUTES = 45;
+export const ABANDONMENT_WINDOW_MINUTES = 240;
 export const SWEEP_BATCH_SIZE = 25;
 
 const OPEN_STATUSES: readonly SessionStatus[] = [
@@ -11,6 +12,7 @@ const OPEN_STATUSES: readonly SessionStatus[] = [
   "CLASSIFYING",
   "QUESTIONING",
   "MATCHING",
+  "NEEDS_CALLBACK",
 ];
 
 export interface AbandonmentSweepResult {
@@ -62,6 +64,12 @@ export async function sweepAbandonedSessions(): Promise<AbandonmentSweepResult> 
 
     const hasContact =
       Boolean(candidate.customerPhone) || Boolean(candidate.customerEmail);
+
+    await recordSessionEvent(candidate.id, "ABANDONED", {
+      hasContact,
+      routed: candidate.franchiseLocationId !== null,
+      windowMinutes: ABANDONMENT_WINDOW_MINUTES,
+    });
 
     if (!hasContact) {
       result.skippedNoContact += 1;

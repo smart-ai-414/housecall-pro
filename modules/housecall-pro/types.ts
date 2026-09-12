@@ -29,6 +29,7 @@ export interface HousecallProCreateCustomerRequest {
   email?: string;
   mobile_number?: string;
   notifications_enabled: boolean;
+  lead_source?: string;
   addresses: HousecallProAddress[];
 }
 

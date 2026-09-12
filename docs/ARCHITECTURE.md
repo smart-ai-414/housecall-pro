@@ -127,6 +127,18 @@ apply.
 The Prisma CLI, the seed script and `npm run verify` do not read env files on
 their own, so each loads `.env` explicitly through dotenv.
 
+That is not sufficient for a script that imports `core/db/prisma`. ES module
+imports are hoisted, so every imported module is evaluated *before* the
+`loadEnv()` call in the script body — and `core/db/prisma.ts` reads
+`DATABASE_URL` at module evaluation time, not lazily. The client is therefore
+built with an undefined connection string and fails with a SASL password
+error. `core/security/encryption.ts` and friends escape this only because they
+read env inside a memoized function that nothing calls at import time.
+
+A standalone script that needs the database should build its own
+`PrismaClient` the way `prisma/seed.ts` and `scripts/setup-location.ts` do,
+rather than importing the app singleton.
+
 ### Why PORT needs a launcher
 
 Next resolves its listen port **before** it loads any env file, so `PORT` in
@@ -203,7 +215,7 @@ Replace it rather than reading it back.
 
 A resume link is the only credential in the customer flow, and it addresses a
 record holding a residential address and photos of the house. Format:
-`<sessionId>.<nonce>.<hmac>`.
+`<sessionId>.<nonce>.<issuedAt>.<hmac>`.
 
 - the 16-byte random nonce makes it unguessable
 - the HMAC makes it unforgeable, and binds the nonce to the session so a token
@@ -211,9 +223,47 @@ record holding a residential address and photos of the house. Format:
 - signed with `RESUME_TOKEN_SECRET`, deliberately separate from `AUTH_SECRET`,
   so a leaked customer link can never mint a staff session
 
+- `issuedAt` is inside the signed payload, so the seven-day expiry cannot be
+  stretched by editing the token. `RESUME_TOKEN_TTL_DAYS` lives in
+  `core/security/resume-token-policy.ts` rather than in `resume-token.ts`
+  itself, because the widget displays the figure to the customer and importing
+  the signing module into a Client Component would pull `node:crypto` into the
+  browser bundle.
+
 Verifying a signature proves we minted the token, not that it is the _current_
 token for that session. Callers also compare against the stored value, which is
-what makes revocation (re-minting on resume) possible.
+what makes revocation (re-minting on resume) possible. Expiry and revocation
+are both needed: the signature bounds how long a leaked link works, and the
+stored-value comparison is what lets us cut one off early.
+
+A JWT was the obvious alternative and was rejected. Revoking one needs a
+denylist, which is a second source of truth for something a single stored
+column already answers.
+
+### Photo links inside estimate notes
+
+When photo attachment is unavailable, the notes carry links instead — and a
+reviewer may open that estimate a week after it was created. A raw signed
+storage URL cannot survive that: ours are minted for 15 minutes, and SigV4
+caps any presigned URL at seven days regardless.
+
+So notes carry `/api/photos/<token>` on our own origin
+(`modules/photos/photo-link.ts`). The route verifies an HMAC token and
+redirects to a freshly signed URL, so the link in the note stays valid for 90
+days while the storage URL behind it stays short-lived.
+
+The photo token reuses `RESUME_TOKEN_SECRET` but signs a payload prefixed
+`photo-access`. That domain separator is what stops a resume token being
+replayed as a photo token, or the reverse — both are 4-part HMAC tokens over
+the same secret, and `npm run verify` asserts that each rejects the other.
+
+Building an absolute URL needs an origin the request cannot supply: the
+abandonment sweep runs from cron with no meaningful request, and deriving an
+origin from a `Host` header would write an attacker-controllable URL into a
+record staff will click. `PUBLIC_APP_URL` (falling back to `AUTH_URL`) is
+therefore explicit. When neither is set the notes fall back to short-lived
+signed URLs and say so in `REVIEWER MUST CHECK`, rather than silently
+producing links that are dead on arrival.
 
 ## Failure modes that must not take the app down
 
@@ -301,7 +351,12 @@ All writes land in the live account, alongside real customers. Two mechanisms
 keep this survivable (`modules/housecall-pro/test-guard.ts`):
 
 - anything written outside production is prefixed `[TEST]` and flagged
-  `isTestRecord` in the local database
+  `isTestRecord` in the local database. "Production" here means
+  `HOUSECALL_PRO_LIVE_WRITES=true`, not `NODE_ENV`. A preview or staging
+  deploy builds with `NODE_ENV=production`, so a `NODE_ENV` check would let it
+  write unmarked records into the live account beside real customers. The flag
+  is opt-in, so the failure mode of forgetting it is an over-prefixed record
+  rather than a polluted CRM.
 - `assertSafeToWriteFromThisEnvironment` refuses to modify a record that is not
   `[TEST]`-prefixed when running outside production
 
@@ -356,9 +411,55 @@ defaulted:
 Ambiguity deliberately does **not** pick one. It holds the job for a human. The
 locations page surfaces overlapping ZIPs so an admin can fix the cause.
 
+There is one exception, and it only fires when there is exactly **one** active
+location: an address that carries no ZIP, or a ZIP outside that location's
+territory, routes to it anyway as `ROUTED_BY_SOLE_LOCATION`. With a single
+franchise there is no choice to get wrong, and the alternative was worse — a
+territory list that is merely incomplete stranded every lead outside it.
+
+The outcome is named separately from `ROUTED` rather than folded into it, so
+the routing note records that the territory did not actually match. Ambiguity
+between two or more locations still holds for a human; this fallback never
+guesses between candidates.
+
 Territories are JSONB rather than a ZIP table because franchises define them
 inconsistently — a ZIP list here, a drawn boundary there — and routing reads the
 whole definition at once.
+
+## Why contact details come first
+
+The widget asks for name, phone and service address before it asks for
+photographs. The order looks worse for conversion and is right anyway.
+
+The abandonment sweep can only act on a session it can call back:
+`modules/intake/abandonment.ts` skips anything with no contact details, and
+`syncSessionToHousecallPro` refuses to create anything for a session with no
+routed location. Photos-first meant that a customer who dropped out after one
+upload left a row nobody could act on — which is exactly the case the tool
+exists to catch.
+
+Routing also depends on the service address, so asking for it first is what
+lets every later stage name the location handling the job.
+
+## The session event log
+
+`session_events` is append-only, written through `recordSessionEvent`
+(`modules/intake/session-events.ts`). It answers questions the session row
+cannot, because a row holds only the latest state: how many sync attempts
+there were and what each one failed with, when photos arrived relative to the
+contact form, whether a lead was abandoned before or after routing.
+
+`estimates.last_sync_error` keeps only the most recent failure, so without
+this log "it failed twice, first on a 429 and then on a validation error" is
+unanswerable.
+
+Writes are wrapped in try/catch and degrade to a warning. Losing an audit row
+must never fail the customer interaction that produced it.
+
+`detail` deliberately holds shapes and outcomes rather than content — lengths,
+counts, enum outcomes, booleans. The transcript is already in
+`conversation_state` and the contact details are already on the session; a
+debugging log does not need a third copy of someone's phone number.
 
 ## Conversation state
 
@@ -379,7 +480,18 @@ single session cannot grow a JSONB column without bound.
 constant time). The endpoint refuses to run when `CRON_SECRET` is unset, because
 an unauthenticated sweep writes to the live Housecall Pro account.
 
-After 45 minutes of silence a session is marked `ABANDONED`. If it has contact
+`NEEDS_CALLBACK` counts as an open status for the sweep. It is a state a
+session reaches while the customer is still present — set the moment an
+address fails to route — not a terminal one. Leaving it out meant those
+sessions were never marked abandoned and never counted anywhere, which is
+precisely the "every submission accounted for" guarantee failing silently.
+
+After four hours of silence a session is marked `ABANDONED`. The window is a
+judgement call, not a derived number: 45 minutes chased customers who had gone
+to find a tape measure, and 24 hours meant an evening lead was not actionable
+until the following evening, which defeats the out-of-hours capture the tool
+exists for. Four hours keeps a same-day lead same-day. The sweep runs hourly,
+so the real delay is four to five hours. If it has contact
 details **and** a routed location, it syncs as a partial lead: an unsent
 Housecall Pro estimate whose notes say plainly that intake was never completed
 and that someone should call. A session with no contact details is only marked,
@@ -408,7 +520,9 @@ looks to the caller like success.
 
 ## Phases
 
-Phase 1 (foundation) and Phase 2 (integration) are built. Still to come:
+Phase 1 (foundation) and Phase 2 (integration) are built, along with the
+public intake routes (`/estimate`, `/estimate/resume/[token]`), durable photo
+links and the session event log. Still to come:
 
 - **Phase 3, perception** — Claude Vision fills `classifications` and
   `dimension_estimates`, with confidence routing. `is_low_confidence` is written

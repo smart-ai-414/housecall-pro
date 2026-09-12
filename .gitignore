@@ -49,3 +49,7 @@ next-env.d.ts
 # Prisma CLI drops agent skill docs on init; not part of the app
 /.agents/
 /skills-lock.json
+
+# Live-account record ids written by npm run hcp:smoke -- --write.
+# Transient cleanup material, not project state.
+/smoke-test-created-records.json

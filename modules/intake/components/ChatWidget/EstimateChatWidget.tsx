@@ -12,30 +12,48 @@ import {
   PhotoUploadRow,
   PhotoUploadUnavailableNotice,
 } from "@/modules/intake/components/ChatWidget/PhotoUploadRow";
-import { useIntakeSession } from "@/modules/intake/components/ChatWidget/useIntakeSession";
+import { ResumeLinkRow } from "@/modules/intake/components/ChatWidget/ResumeLinkRow";
+import {
+  useIntakeSession,
+  type StoredCredentials,
+} from "@/modules/intake/components/ChatWidget/useIntakeSession";
+import { useTurnstileToken } from "@/modules/intake/components/ChatWidget/useTurnstileToken";
 import { OPEN_ESTIMATE_CHAT_EVENT } from "@/modules/intake/components/open-chat-event";
 
-export function EstimateChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+export interface EstimateChatWidgetProps {
+  variant?: "floating" | "inline";
+  resumeCredentials?: StoredCredentials | null;
+}
+
+export function EstimateChatWidget({
+  variant = "floating",
+  resumeCredentials = null,
+}: EstimateChatWidgetProps = {}) {
+  const isInline = variant === "inline";
+  const [isOpen, setIsOpen] = useState(isInline);
   const [draft, setDraft] = useState("");
-  const intake = useIntakeSession();
+  const {
+    setContainer: setTurnstileContainer,
+    token: turnstileToken,
+    isReady: isTurnstileReady,
+  } = useTurnstileToken(isOpen && resumeCredentials === null);
+  const intake = useIntakeSession(resumeCredentials, turnstileToken);
 
   useEffect(() => {
+    if (isInline) return;
     const handleOpenRequest = () => setIsOpen(true);
     window.addEventListener(OPEN_ESTIMATE_CHAT_EVENT, handleOpenRequest);
     return () =>
       window.removeEventListener(OPEN_ESTIMATE_CHAT_EVENT, handleOpenRequest);
-  }, []);
+  }, [isInline]);
 
   useEffect(() => {
-    if (isOpen) void intake.start();
-  }, [isOpen, intake]);
+    if (isOpen && isTurnstileReady) void intake.start();
+  }, [isOpen, isTurnstileReady, intake]);
 
   const session = intake.session;
   const needsContactDetails =
-    session !== null &&
-    session.outstandingPhotoTypes.length === 0 &&
-    session.outstandingQuestions.includes("CONTACT_DETAILS");
+    session !== null && session.outstandingQuestions.includes("CONTACT_DETAILS");
 
   if (!isOpen) {
     return (
@@ -53,7 +71,12 @@ export function EstimateChatWidget() {
   return (
     <section
       aria-label="Estimate assistant"
-      className="ring-border-subtle fixed inset-x-0 bottom-0 z-40 flex h-[min(38rem,90dvh)] flex-col overflow-hidden bg-white shadow-2xl ring-1 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[26rem] sm:rounded-2xl"
+      className={cn(
+        "ring-border-subtle flex flex-col overflow-hidden bg-white ring-1",
+        isInline
+          ? "h-[min(44rem,100dvh)] w-full sm:h-[min(44rem,85dvh)] sm:rounded-2xl sm:shadow-xl"
+          : "fixed inset-x-0 bottom-0 z-40 h-[min(38rem,90dvh)] shadow-2xl sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[26rem] sm:rounded-2xl",
+      )}
     >
       <header className="border-border-subtle bg-brand-700 flex items-start justify-between gap-3 border-b px-4 py-3.5 text-white">
         <div>
@@ -66,14 +89,16 @@ export function EstimateChatWidget() {
               : "A person reviews every estimate"}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsOpen(false)}
-          aria-label="Close the estimate assistant"
-          className="hover:bg-brand-800 rounded-lg p-1"
-        >
-          <X className="size-4" aria-hidden="true" />
-        </button>
+        {isInline ? null : (
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close the estimate assistant"
+            className="hover:bg-brand-800 rounded-lg p-1"
+          >
+            <X className="size-4" aria-hidden="true" />
+          </button>
+        )}
       </header>
 
       {intake.error ? (
@@ -98,10 +123,11 @@ export function EstimateChatWidget() {
       ) : null}
 
       {intake.isStarting || !session ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
           <p className="text-sm text-slate-500">
             {intake.error ? "Could not start a session." : "Starting…"}
           </p>
+          <div ref={setTurnstileContainer} />
         </div>
       ) : (
         <>
@@ -111,7 +137,14 @@ export function EstimateChatWidget() {
           />
 
           <div className="border-border-subtle bg-surface-muted space-y-2 border-t px-4 py-3">
-            {!session.photoUploadAvailable ? (
+            {needsContactDetails ? (
+              <ContactDetailsForm
+                isSubmitting={intake.isSending}
+                onSubmit={(contactDraft) =>
+                  void intake.submitContactDetails(contactDraft)
+                }
+              />
+            ) : !session.photoUploadAvailable ? (
               <PhotoUploadUnavailableNotice />
             ) : session.outstandingPhotoTypes.length > 0 ? (
               session.outstandingPhotoTypes.map((photoType) => (
@@ -127,14 +160,7 @@ export function EstimateChatWidget() {
               <PhotoCompleteNotice />
             )}
 
-            {needsContactDetails ? (
-              <ContactDetailsForm
-                isSubmitting={intake.isSending}
-                onSubmit={(contactDraft) =>
-                  void intake.submitContactDetails(contactDraft)
-                }
-              />
-            ) : null}
+            <ResumeLinkRow resumeToken={session.resumeToken} />
           </div>
 
           <form
