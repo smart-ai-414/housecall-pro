@@ -128,7 +128,7 @@ The Prisma CLI, the seed script and `npm run verify` do not read env files on
 their own, so each loads `.env` explicitly through dotenv.
 
 That is not sufficient for a script that imports `core/db/prisma`. ES module
-imports are hoisted, so every imported module is evaluated *before* the
+imports are hoisted, so every imported module is evaluated _before_ the
 `loadEnv()` call in the script body — and `core/db/prisma.ts` reads
 `DATABASE_URL` at module evaluation time, not lazily. The client is therefore
 built with an undefined connection string and fails with a SASL password
@@ -345,6 +345,168 @@ processes it, writes the processed version, and deletes the original.
 
 ## Housecall Pro integration
 
+### What the live API actually exposes
+
+Probed against the CCI Glass Inc. key on 12 September 2026. Three findings
+contradicted the assumptions the client code was first written against, and all
+three are load-bearing.
+
+**There is no price book endpoint.** Every candidate path — `price_book`,
+`price_book/services`, `price_book/service_items`, `service_items`, `services`,
+`catalog`, `materials`, `products`, and versioned variants — returns 404. Not
+403, so this is not obviously a plan-tier block; the resource is simply not part
+of this API.
+
+The catalogue is recovered instead from `service_item_id` references on
+historical line items, which is what `npm run hcp:catalogue`
+(`scripts/export-catalogue.ts`) does: it walks recent estimates and jobs,
+collects distinct `service_item_id` and name pairs, and writes
+`catalogue-export.json`. Identifiers and names only — no price fields are
+recorded anywhere, in keeping with the governing principle.
+
+This has a consequence for Phase 3: catalogue matching must run against an
+exported snapshot, and that snapshot goes stale silently when the price book
+changes. Re-running the export is the only refresh mechanism available.
+
+### What the exported catalogue says about pricing
+
+The first full export (500 estimates, 500 jobs, 1,556 requests) recovered **120
+distinct service items in active use**, not the 33 the plan anticipated. That
+number came from one category in the UI; the account bills from a much wider
+set. Four things follow, and all of them touch Phase 3.
+
+**Bands do not form one ladder.** They form several, and a residential photo
+must never be matched against a storefront band:
+
+| Family                | Bands (sq ft)                 | Tightest per-axis tolerance |
+| --------------------- | ----------------------------- | --------------------------- |
+| Residential           | 7, 10, 12, 18, 25             | 9.5%                        |
+| Sliding door          | 16, 18                        | 6.1%                        |
+| Commercial storefront | 8, 12, 16, 20, 24, 34, 35, 36 | 1.4%                        |
+
+9.5% on the residential ladder is a reasonable target for dimension estimation
+from a photograph. 1.4% on the storefront ladder is not, and no general vision
+model should be expected to hit it. Commercial storefront work should route to a
+human for measurement rather than be band-matched — the plan's 80% case is
+residential, and that is the case the bands support.
+
+**Naming is inconsistent and unstable**, so matching cannot be a string test.
+`10 SqFt Residential Glass replacement`, `24SF IGU Storefront Glass` and
+`Glass replacement  - 35 SF IGU Storefront Glass` are one idea spelled three
+ways, doubled spaces and all. Worse, **55 of the 120 items appear under more
+than one name**, because a line item's name is editable after it is inserted
+from the price book. One id was seen 234 times under 16 names, including ones
+claiming 3, 8, 18 and 25 sq ft, plus `mirrors` and
+`Custom Window Supply and Install` — while 224 of those 234 said 7 sq ft.
+
+The export therefore treats a name as evidence, never as truth. It keeps every
+name observed per id with a count, picks the band supported by the most
+observations, and requires that band to carry at least 20% of the id's sightings
+so a single mistyped line cannot rename a catalogue item. Materials (`pbmat_`)
+are excluded from banding altogether: one of them had picked up a spurious
+10 sq ft band from a lone line reading `10 sq ft - IG Annealed residential`,
+where a person had recorded a quantity in the name field.
+
+Family is decided the same way — by weight across all observed names — because
+the most frequent name is often the least descriptive. `18 Glass replacement`
+only reveals itself as residential through a rarer sibling,
+`18 SqFt Residential Glass Replacement`.
+
+One item, `16 Glass replacement`, has a single sighting and a bare leading
+number. The export lists it under `bandNeedsHumanRuling` rather than guessing.
+
+**Multi-opening decomposition has dedicated items**, which settles the choice
+the plan left open. `Glass replacement  - Additional Glass - 7sq ft.` and a
+standalone `Service Call` item exist, so a two-pane job is one service call plus
+per-opening items — no bundle arithmetic required.
+
+**Shower glass is not band-priced at all.** It is named by configuration
+(`Shower Glass - 90 Angles Left Shower`, `Corner Shower - Glass Panels`,
+`octagon shower`, `Straight Shower w/ Sidelite`). Square footage does not select
+a shower item, so the "estimate sq ft, pick the band" path does not apply to a
+family the client named as one of the three common cases.
+
+**Creating an estimate takes an `options` array**, and it was confirmed against
+the live account: `POST /estimates` with
+`{customer_id, note, options: [{name, line_items: [...]}]}` returns 201. The
+estimate arrives with `work_status: "needs scheduling"`, `approval_status: null`
+and an empty schedule — unsent, which is what this system requires. Housecall
+Pro adds its own `tax` line item automatically, so a created estimate reads back
+with one more line than was sent.
+
+Two fields sent on create did **not** survive: `message_from_pro` was replaced
+by the company's own template text, and `order_index` came back `null`. Neither
+is load-bearing — the reviewer-facing content goes in `note` — but do not rely
+on either to carry meaning.
+
+**Estimates are built from options, not a flat line-item array.** An estimate
+carries `options[]`; each option carries its own line items, reachable only at
+`GET /estimates/{id}/options/{option_id}/line_items`. There is no
+`/estimates/{id}/line_items`. `getEstimateLineItems` walks options to assemble
+the full list.
+
+This answers a question left open when the smoke test was written: reviewer
+edits _can_ be diffed, because line items are readable after the fact. Phase 2's
+accuracy loop is viable.
+
+A line item carries `service_item_id`, `name`, `description`, `kind`,
+`quantity`, `unit_of_measure`, `order_index` and `taxable`, alongside the
+currency fields this system never writes. Observed `kind` values are `labor`,
+`materials`, `percent discount` and `tax` — not the `service` the code
+originally sent.
+
+**Estimates and jobs use different list envelopes**, which is an easy and silent
+bug: `GET /estimates/{id}/options/{id}/line_items` returns
+`{page, page_size, total_pages, total_items, line_items}`, while
+`GET /jobs/{id}/line_items` returns `{object, data, url}`. Reading `data` off
+the estimate response yields an empty array rather than an error.
+
+**Line item names are per-line overrides, not catalogue names.** The same
+`service_item_id` appears under different names on different records — one id
+was seen as both "Custom Window Supply and Install" and "7 SqFt Residential
+Glass replacement". A recovered name is therefore evidence, not truth: the
+export records every name observed per id, ranks them by frequency, and flags
+any id whose names imply different square-footage bands. Matching must key on
+`service_item_id`, never on a name.
+
+**There is no attachment endpoint.** `POST /estimates/{id}/attachments` returns
+404, as does the jobs equivalent. Signed photo links in the estimate notes are
+therefore not a fallback, they are the only path, which is why
+`PUBLIC_APP_URL` matters: without it the links in the notes are short-lived
+S3 signatures that expire before a reviewer opens them. See
+[Photo links inside estimate notes](#photo-links-inside-estimate-notes).
+
+**Nothing created through this API can be deleted through it.**
+`DELETE /customers/{id}` and `DELETE /estimates/{id}` both return 404, while
+`GET`, `PUT` and `PATCH` on those same paths return 200 — a missing verb, not a
+missing record. Both were confirmed against records created from here; the
+estimate still answered `GET` with 200 after the delete attempt.
+
+Two consequences, and the second is a contract question.
+
+`npm run hcp:cleanup` cannot do what its name promises. It now reports what must
+be removed by hand rather than claiming deletions it cannot perform, and
+`npm run hcp:smoke` keeps a cumulative manifest
+(`smoke-test-created-records.json`) of everything still outstanding, appending
+across runs and persisting immediately after each create rather than at the end
+— an earlier crash mid-run orphaned a live customer precisely because the
+manifest was written last.
+
+The acceptance criterion "all test records removed from the live account before
+handover" **cannot be met programmatically**. Removal is a manual pass in the
+Housecall Pro UI, and the plan should say so rather than implying a script can
+do it.
+
+The practical consequence for development: **every live write is permanent.**
+Reuse one `[TEST]` customer across write tests —
+`npm run hcp:smoke -- --write --customer-id=<id>` does this, and refuses to
+proceed if the named customer does not carry the `[TEST]` prefix.
+
+`GET /customers?q=` does filter, so deduplication by phone then email works as
+designed. Customer and estimate list envelopes are
+`{page, page_size, total_pages, total_items, <resource>}`; line-item collections
+use `{object, data, url}` instead.
+
 ### There is no test environment
 
 All writes land in the live account, alongside real customers. Two mechanisms
@@ -473,6 +635,35 @@ from a fixed bank (`modules/intake/question-bank.ts`) that the model selects
 from; it does not compose them. Stored history is capped at 200 messages so a
 single session cannot grow a JSONB column without bound.
 
+## Completion
+
+A session syncs to Housecall Pro the moment it has everything, not when the
+customer says so. `modules/intake/completion.ts` holds the single definition of
+"everything": a name, a phone number or email, a service address, a resolved
+franchise location, every requested photo, and no unanswered question from the
+bank. `assessIntakeCompleteness` is pure and is asserted by `npm run verify`;
+`assessSessionCompleteness` reads the session and applies it.
+
+Every action that can advance a session — a message, a photo, the contact form
+— calls `syncIfIntakeComplete` afterwards. The customer waits on that one
+request rather than on a step they have to remember to take, and the lead
+reaches a reviewer while they are still at their desk.
+
+Three guards keep that from becoming a retry loop against a live account:
+
+- an estimate that already carries a `housecall_pro_estimate_id` reports
+  `ALREADY_SYNCED` and calls nothing
+- an estimate in `SYNC_FAILED` is **not** retried. A failure is a human's
+  problem, per the idempotency rule above — the dashboard queue shows it
+- the reservation row is written before the API call either way, so a request
+  that dies mid-flight still leaves a record a reviewer can see
+
+The abandonment sweep remains the safety net beneath all of this: a customer who
+closes the tab at the wrong moment is still picked up. Because the sweep now
+asks `assessSessionCompleteness` rather than assuming, a session that _was_
+complete syncs as `COMPLETED_INTAKE` and is not slandered in the notes as one
+the customer walked away from.
+
 ## Abandonment
 
 `modules/intake/abandonment.ts`, driven by `POST /api/cron/abandonment-sweep`
@@ -507,9 +698,35 @@ _observed_ from what the customer _confirmed_, and lists what the reviewer must
 still check. A reviewer should never have to open this application to judge an
 estimate.
 
-It always ends with the reminder that safety glazing is asked or verified, never
-inferred: a visible safety marking proves a pane is tempered, and its absence
-proves nothing.
+It also carries **what the customer actually said**. Answers are stored against
+their question id in `conversation_state.collected.answers`, not left to be
+reconstructed from the transcript, so the notes can quote the customer verbatim
+under the question they were answering.
+
+## Safety glazing
+
+Code may require safety glazing when glass sits beside a door, in a bathroom, low
+to the floor, or in a stair or hallway. None of that is inferable from a
+photograph: a visible etched marking proves a pane is tempered, but its absence
+proves nothing, because the mark is often hidden by the frame.
+
+So it is **asked**. `SAFETY_GLAZING_CONTEXT` is in the question bank and in
+`OPENING_QUESTION_SEQUENCE`, which means every customer sees it rather than only
+those whose photographs happen to look suspicious.
+
+`safetyGlazingMayBeRequired` reads the answer and is deliberately asymmetric:
+
+- no answer, or "not sure" → `null`, unknown
+- an explicitly listed location → `true`
+- **only** an exact "none of these" → `false`
+- anything unrecognised → `true`
+
+That last rule is the important one. A free-text answer the parser does not
+understand errs toward flagging, because the cost of flagging unnecessarily is a
+reviewer glancing at a line, and the cost of missing it is the wrong glass in a
+door. The notes render each of the four states differently, and every one of
+them still says to verify on site — the question improves what the reviewer
+knows, it does not replace the survey.
 
 ## Graceful degradation
 

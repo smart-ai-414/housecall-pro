@@ -31,6 +31,14 @@ import {
   extractZipCode,
   isPointInsideBoundary,
 } from "../modules/tenancy/territory-routing";
+import { assessIntakeCompleteness } from "../modules/intake/completion";
+import {
+  OPENING_QUESTION_SEQUENCE,
+  QUESTION_BANK,
+  SAFETY_GLAZING_QUESTION_ID,
+  safetyGlazingMayBeRequired,
+} from "../modules/intake/question-bank";
+import { buildLineItemsFromCatalogueMatches } from "../modules/housecall-pro/estimates";
 
 let failures = 0;
 
@@ -326,6 +334,138 @@ async function main() {
   check(
     "Point outside boundary",
     !isPointInsideBoundary({ latitude: 45.0, longitude: -92.0 }, square),
+  );
+
+  console.log("\nINTAKE COMPLETENESS (what triggers the sync)");
+
+  const fullyAnswered = {
+    hasName: true,
+    hasPhoneOrEmail: true,
+    hasServiceAddress: true,
+    isRouted: true,
+    outstandingPhotoTypes: [],
+    outstandingQuestions: [],
+  };
+
+  check(
+    "A fully answered session is complete",
+    assessIntakeCompleteness(fullyAnswered).isComplete,
+  );
+  check(
+    "An unrouted session is never complete",
+    !assessIntakeCompleteness({ ...fullyAnswered, isRouted: false }).isComplete,
+  );
+  check(
+    "A missing photo blocks completion",
+    !assessIntakeCompleteness({
+      ...fullyAnswered,
+      outstandingPhotoTypes: ["EXTERIOR_FULL_ELEVATION"],
+    }).isComplete,
+  );
+  check(
+    "An unanswered banked question blocks completion",
+    !assessIntakeCompleteness({
+      ...fullyAnswered,
+      outstandingQuestions: ["WHAT_HAPPENED"],
+    }).isComplete,
+  );
+  check(
+    "An unknown question id does not block completion",
+    assessIntakeCompleteness({
+      ...fullyAnswered,
+      outstandingQuestions: ["NOT_IN_THE_BANK"],
+    }).isComplete,
+  );
+  check(
+    "No contact route means no sync",
+    !assessIntakeCompleteness({ ...fullyAnswered, hasPhoneOrEmail: false })
+      .isComplete,
+  );
+
+  const missingEverything = assessIntakeCompleteness({
+    hasName: false,
+    hasPhoneOrEmail: false,
+    hasServiceAddress: false,
+    isRouted: false,
+    outstandingPhotoTypes: ["INTERIOR_FLOOR_TO_CEILING"],
+    outstandingQuestions: ["WHAT_HAPPENED"],
+  });
+  check(
+    "Every unmet requirement is reported, not just the first",
+    missingEverything.missing.length === 5,
+    `${missingEverything.missing.join(", ")}`,
+  );
+
+  console.log("\nSAFETY GLAZING (asked, never inferred)");
+
+  check(
+    "The question is in the bank",
+    SAFETY_GLAZING_QUESTION_ID in QUESTION_BANK,
+  );
+  check(
+    "Every customer is asked it",
+    OPENING_QUESTION_SEQUENCE.includes(SAFETY_GLAZING_QUESTION_ID),
+  );
+  check(
+    "Unanswered is unknown, never a negative",
+    safetyGlazingMayBeRequired(null) === null &&
+      safetyGlazingMayBeRequired("") === null,
+  );
+  check(
+    '"Not sure" is unknown, never a negative',
+    safetyGlazingMayBeRequired("Not sure") === null,
+  );
+  check(
+    "A triggering location flags it",
+    safetyGlazingMayBeRequired("Right beside a door") === true &&
+      safetyGlazingMayBeRequired("In a bathroom or shower") === true,
+  );
+  check(
+    "Only an explicit denial clears it",
+    safetyGlazingMayBeRequired("None of these") === false,
+  );
+  check(
+    "An unrecognised answer errs toward flagging",
+    safetyGlazingMayBeRequired("it is above the kitchen sink") === true,
+  );
+
+  console.log("\nESTIMATE LINE ITEMS (Housecall Pro shape)");
+
+  const lineItems = buildLineItemsFromCatalogueMatches([
+    {
+      housecallProServiceId: "olit_7d81a47acff4444fa1b412722f5f709d",
+      serviceName: "25 SqFt Residential Glass Replacement",
+      quantity: 1,
+      isBaseItem: true,
+      isAdditionalOpening: false,
+      openingIndex: null,
+    },
+    {
+      housecallProServiceId: "olit_e7b87f1b0cba4b5389e5e9566bb42d4e",
+      serviceName: "12 SqFt Residential Glass Replacement",
+      quantity: 1,
+      isBaseItem: false,
+      isAdditionalOpening: true,
+      openingIndex: 2,
+    },
+  ]);
+
+  check(
+    "Line items reference a catalogue service_item_id",
+    lineItems.every((item) => item.service_item_id?.startsWith("olit_")),
+  );
+  check(
+    "No currency amount is ever generated",
+    lineItems.every((item) => !("unit_price" in item) && !("amount" in item)),
+  );
+  check(
+    "Additional openings are labelled for the reviewer",
+    lineItems[1].description === "Opening 2",
+  );
+  check(
+    "Line items are emitted in a stable order",
+    lineItems[0].order_index === 0 && lineItems[1].order_index === 1,
+    "Housecall Pro discards order_index on create; this asserts our own output",
   );
 
   console.log(

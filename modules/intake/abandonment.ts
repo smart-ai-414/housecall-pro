@@ -1,6 +1,7 @@
 import { prisma } from "@/core/db/prisma";
 import type { SessionStatus } from "@/generated/prisma/enums";
 import { syncSessionToHousecallPro } from "@/modules/estimates/estimate-sync-service";
+import { assessSessionCompleteness } from "@/modules/intake/completion";
 import { recordSessionEvent } from "@/modules/intake/session-events";
 
 export const ABANDONMENT_WINDOW_MINUTES = 240;
@@ -82,9 +83,11 @@ export async function sweepAbandonedSessions(): Promise<AbandonmentSweepResult> 
     }
 
     try {
+      const { isComplete } = await assessSessionCompleteness(candidate.id);
+
       const outcome = await syncSessionToHousecallPro({
         sessionId: candidate.id,
-        reason: "ABANDONED_PARTIAL_LEAD",
+        reason: isComplete ? "COMPLETED_INTAKE" : "ABANDONED_PARTIAL_LEAD",
       });
 
       if (outcome.status === "SYNCED" || outcome.status === "ALREADY_SYNCED") {

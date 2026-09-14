@@ -1,11 +1,10 @@
 import { randomUUID } from "node:crypto";
 
 import { BRAND } from "@/core/config/branding";
-import { publicAppUrl } from "@/core/config/env";
+import { housecallProLeadSource, publicAppUrl } from "@/core/config/env";
 import { prisma } from "@/core/db/prisma";
 import { AppError } from "@/core/errors";
 import {
-  attachPhotosToEstimate,
   buildLineItemsFromCatalogueMatches,
   createUnsentEstimate,
 } from "@/modules/housecall-pro/estimates";
@@ -16,7 +15,21 @@ import {
   describeWriteEnvironment,
   shouldMarkAsTestRecord,
 } from "@/modules/housecall-pro/test-guard";
-import type { JsonObject } from "@/modules/intake/conversation-state";
+import {
+  assessSessionCompleteness,
+  describeMissingRequirements,
+} from "@/modules/intake/completion";
+import {
+  parseConversationState,
+  type JsonObject,
+} from "@/modules/intake/conversation-state";
+import {
+  isQuestionId,
+  QUESTION_BANK,
+  SAFETY_GLAZING_QUESTION_ID,
+  safetyGlazingMayBeRequired,
+  type QuestionId,
+} from "@/modules/intake/question-bank";
 import { recordSessionEvent } from "@/modules/intake/session-events";
 import { buildDurablePhotoUrl } from "@/modules/photos/photo-link";
 import { PHOTO_TYPE_GUIDANCE } from "@/modules/photos/photo-service";
@@ -49,6 +62,12 @@ interface StructuredNotesHeader {
     scaleReference: string | null;
     customerConfirmed: boolean;
   } | null;
+  customerSaid: { question: string; answer: string }[];
+  safetyGlazing: {
+    answered: boolean;
+    mayBeRequired: boolean | null;
+    answer: string | null;
+  };
   reviewerMustCheck: string[];
   photos: { label: string; url: string }[];
 }
@@ -84,6 +103,38 @@ function renderNotes(header: StructuredNotesHeader): string {
   } else {
     lines.push("MEASUREMENTS: none captured", "");
   }
+
+  if (header.customerSaid.length > 0) {
+    lines.push("WHAT THE CUSTOMER SAID:");
+    for (const entry of header.customerSaid) {
+      lines.push(`  ${entry.question}`);
+      lines.push(`    "${entry.answer}"`);
+    }
+    lines.push("");
+  }
+
+  lines.push("SAFETY GLAZING:");
+  if (!header.safetyGlazing.answered) {
+    lines.push("  Not asked. Verify on site before ordering.");
+  } else if (header.safetyGlazing.mayBeRequired === true) {
+    lines.push(
+      "  MAY BE REQUIRED — the customer described a location where code",
+      "  usually calls for it. Confirm on site before ordering glass.",
+      `  Customer said: "${header.safetyGlazing.answer}"`,
+    );
+  } else if (header.safetyGlazing.mayBeRequired === false) {
+    lines.push(
+      "  Customer reported none of the triggering locations.",
+      "  Still verify on site — this is their reading, not a survey.",
+      `  Customer said: "${header.safetyGlazing.answer}"`,
+    );
+  } else {
+    lines.push(
+      "  Customer was unsure. Treat as unknown and verify on site.",
+      `  Customer said: "${header.safetyGlazing.answer}"`,
+    );
+  }
+  lines.push("");
 
   if (header.reviewerMustCheck.length > 0) {
     lines.push("REVIEWER MUST CHECK:");
@@ -125,6 +176,7 @@ export async function syncSessionToHousecallPro({
       serviceAddress: true,
       franchiseLocationId: true,
       isTestRecord: true,
+      conversationState: true,
       photos: {
         select: { id: true, photoType: true, storageKey: true },
       },
@@ -247,11 +299,27 @@ export async function syncSessionToHousecallPro({
     const classification = session.classifications[0] ?? null;
     const dimensions = session.dimensionEstimates[0] ?? null;
 
+    const collected = parseConversationState(
+      session.conversationState,
+    ).collected;
+    const safetyGlazingAnswer =
+      collected.answers[SAFETY_GLAZING_QUESTION_ID] ?? null;
+
+    const customerSaid = Object.entries(collected.answers)
+      .filter(([questionId]) => isQuestionId(questionId))
+      .map(([questionId, answer]) => ({
+        question: QUESTION_BANK[questionId as QuestionId].prompt,
+        answer,
+      }));
+
     const reviewerMustCheck: string[] = [];
 
     if (reason === "ABANDONED_PARTIAL_LEAD") {
+      const { missing } = await assessSessionCompleteness(session.id);
+
       reviewerMustCheck.push(
         "Intake was never completed. Call the customer before quoting.",
+        ...describeMissingRequirements(missing),
       );
     }
     if (!dimensions) {
@@ -281,9 +349,15 @@ export async function syncSessionToHousecallPro({
         "PUBLIC_APP_URL is unset, so the photo links below expire within minutes. Open them now or set that variable and re-sync.",
       );
     }
-    reviewerMustCheck.push(
-      "Safety glazing is asked or verified, never inferred. Confirm on site.",
-    );
+    if (safetyGlazingMayBeRequired(safetyGlazingAnswer) === true) {
+      reviewerMustCheck.push(
+        "Safety glazing may be required — see the section below.",
+      );
+    } else if (safetyGlazingAnswer === null) {
+      reviewerMustCheck.push(
+        "Safety glazing was never asked. It is asked or verified, never inferred.",
+      );
+    }
 
     const header: StructuredNotesHeader = {
       source: `${BRAND.productName} intake`,
@@ -296,6 +370,12 @@ export async function syncSessionToHousecallPro({
         frameMaterialHint: classification?.frameMaterialHint ?? null,
         classificationConfidence: classification?.confidenceScore ?? null,
         lowConfidence: classification?.isLowConfidence ?? false,
+      },
+      customerSaid,
+      safetyGlazing: {
+        answered: safetyGlazingAnswer !== null,
+        mayBeRequired: safetyGlazingMayBeRequired(safetyGlazingAnswer),
+        answer: safetyGlazingAnswer,
       },
       measurements: dimensions
         ? {
@@ -317,6 +397,7 @@ export async function syncSessionToHousecallPro({
 
     const estimate = await createUnsentEstimate(client, {
       customerId: customer.customerId,
+      leadSource: housecallProLeadSource(),
       lineItems: buildLineItemsFromCatalogueMatches(session.catalogueMatches),
       note: applyTestPrefix(renderNotes(header)),
       idempotencyKey: reservation.idempotencyKey,
@@ -333,12 +414,6 @@ export async function syncSessionToHousecallPro({
         lastSyncError: null,
       },
       select: { id: true, housecallProEstimateId: true },
-    });
-
-    await attachPhotosToEstimate({
-      client,
-      estimateId: estimate.id,
-      photos,
     });
 
     await prisma.customerSession.update({

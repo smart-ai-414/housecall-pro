@@ -75,17 +75,19 @@ On the port from `.env` (3000 by default):
 
 ## Commands
 
-| Command              | What it does                                                    |
-| -------------------- | --------------------------------------------------------------- |
-| `npm run dev`        | Dev server                                                      |
-| `npm run build`      | Generates the Prisma client, then builds                        |
-| `npm run typecheck`  | `tsc --noEmit`                                                  |
-| `npm run lint`       | ESLint                                                          |
-| `npm run format`     | Prettier                                                        |
-| `npm run verify`     | Asserts the image pipeline, crypto and routing behave correctly |
-| `npm run db:migrate` | Create and apply a migration                                    |
-| `npm run db:seed`    | Seed development data                                           |
-| `npm run db:studio`  | Browse the database                                             |
+| Command                 | What it does                                                     |
+| ----------------------- | ---------------------------------------------------------------- |
+| `npm run dev`           | Dev server                                                       |
+| `npm run build`         | Generates the Prisma client, then builds                         |
+| `npm run typecheck`     | `tsc --noEmit`                                                   |
+| `npm run lint`          | ESLint                                                           |
+| `npm run format`        | Prettier                                                         |
+| `npm run verify`        | Asserts the image pipeline, crypto, routing and completion rules |
+| `npm run hcp:smoke`     | Probes the live Housecall Pro API. Read-only unless `--write`    |
+| `npm run hcp:catalogue` | Exports the service catalogue to `catalogue-export.json`         |
+| `npm run db:migrate`    | Create and apply a migration                                     |
+| `npm run db:seed`       | Seed development data                                            |
+| `npm run db:studio`     | Browse the database                                              |
 
 ## Registration is invite-only
 
@@ -104,10 +106,32 @@ promoting someone means issuing a new code rather than editing a user row.
 prefixed `[TEST]` and flagged in the database, and the client refuses to modify a
 record that is not so marked when running outside production.
 
-Before the first real sync, verify the endpoint paths and payload field names in
-`modules/housecall-pro/` against your account's API version. The request shapes
-follow Housecall Pro's documented conventions but have not been exercised
-against a live account from this codebase.
+The read paths in `modules/housecall-pro/` were probed against the live CCI
+Glass Inc. account on 12 September 2026 and corrected to match. Three things are
+worth knowing before you read that code:
+
+- **there is no price book endpoint.** The catalogue is recovered from
+  `service_item_id` references on historical line items — that is what
+  `npm run hcp:catalogue` does
+- **estimates are built from `options`**, each with its own line items. There is
+  no flat `line_items` array on an estimate
+- **there is no attachment endpoint**, so signed photo links in the estimate
+  notes are the only way photos reach a reviewer. Set `PUBLIC_APP_URL` or those
+  links expire in minutes
+
+The create path has now been exercised too: `POST /estimates` with an `options`
+array returns 201 and the estimate arrives unsent.
+
+**Nothing written through this API can be deleted through it.** `DELETE` returns
+404 for both customers and estimates. Every live write is permanent until
+someone removes it in the Housecall Pro UI, so reuse one `[TEST]` customer:
+
+```bash
+npm run hcp:smoke -- --write --customer-id=<existing [TEST] customer>
+```
+
+`smoke-test-created-records.json` tracks what is still outstanding.
+`docs/ARCHITECTURE.md` has the detail.
 
 ## Project layout
 
@@ -137,16 +161,26 @@ New functionality goes in `modules/<capability>/`.
 
 ## Status
 
-- **Phase 1, foundation** — schema, invite-only auth, landing page, dashboard.
-- **Phase 2, integration** — chat widget, direct-to-storage photo upload, image
-  pipeline, Housecall Pro client, session persistence, abandonment sweep, tenant
-  routing, public intake routes (`/estimate`, `/estimate/resume/[token]`),
-  durable photo links in estimate notes, Turnstile, and the session event log.
-- **Phase 3, perception** — Claude Vision classification and dimension
-  estimation. Not built.
-- **Phase 4, pricing** — catalogue matching and gap analysis. Not built.
-- **Phase 5, conversation** — adaptive questioning and multi-opening
+Phase numbering follows the implementation plan (Phase 0 through Phase 4).
+
+- **Phase 0, verification** — done. API reachability, catalogue export, the
+  estimate and line-item shapes, and the create path are all confirmed against
+  the live account.
+- **Phase 1, foundation** — built. Schema, invite-only auth, dashboard, chat
+  widget, direct-to-storage photo upload, image pipeline, Housecall Pro client,
+  session persistence, tenant routing, public intake routes, durable photo links
+  in estimate notes, Turnstile, session event log, completion sync, and the
+  abandonment sweep beneath it.
+- **Phase 2, perception** — vision classification and dimension estimation.
+  Not built.
+- **Phase 3, pricing** — catalogue matching and gap analysis. Not built.
+- **Phase 4, conversation** — adaptive questioning and multi-opening
   decomposition. Not built.
 
-The schema and module boundaries for phases 3–5 already exist; those tables are
+The schema and module boundaries for phases 2–4 already exist; those tables are
 simply unpopulated.
+
+Phase 1 has not run end to end in any environment, because three things are
+unset: storage credentials, a franchise location carrying an API key, and
+Turnstile keys. Until storage is configured the widget runs in its no-photo
+degraded mode.

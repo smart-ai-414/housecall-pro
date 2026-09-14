@@ -110,7 +110,9 @@ export async function resolveFranchiseLocation({
     orderBy: { name: "asc" },
   });
 
-  const toRoutable = (location: (typeof locations)[number]): RoutableLocation => ({
+  const toRoutable = (
+    location: (typeof locations)[number],
+  ): RoutableLocation => ({
     id: location.id,
     name: location.name,
     slug: location.slug,

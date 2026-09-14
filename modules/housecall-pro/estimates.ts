@@ -1,16 +1,20 @@
 import type { HousecallProClient } from "@/modules/housecall-pro/client";
 import { HousecallProError } from "@/modules/housecall-pro/errors";
 import type {
-  HousecallProAttachmentResponse,
   HousecallProCreateEstimateRequest,
   HousecallProEstimate,
   HousecallProEstimateLineItem,
+  HousecallProPagedResponse,
 } from "@/modules/housecall-pro/types";
 
 const ESTIMATES_PATH = "estimates";
 
+export const DEFAULT_OPTION_NAME = "Option 1";
+
 export interface DraftEstimateInput {
   customerId: string;
+  addressId?: string | null;
+  leadSource?: string | null;
   lineItems: HousecallProEstimateLineItem[];
   note: string;
   idempotencyKey: string;
@@ -22,8 +26,16 @@ export async function createUnsentEstimate(
 ): Promise<HousecallProEstimate> {
   const payload: HousecallProCreateEstimateRequest = {
     customer_id: input.customerId,
-    line_items: input.lineItems,
+    options: [
+      {
+        name: DEFAULT_OPTION_NAME,
+        message_from_pro: input.note,
+        line_items: input.lineItems,
+      },
+    ],
     note: input.note,
+    ...(input.addressId ? { address_id: input.addressId } : {}),
+    ...(input.leadSource ? { lead_source: input.leadSource } : {}),
   };
 
   const estimate = await client.request<HousecallProEstimate>({
@@ -54,62 +66,42 @@ export async function getEstimate(
   });
 }
 
-export type PhotoAttachmentOutcome =
-  | { method: "UPLOADED"; attachmentId: string }
-  | { method: "LINKED_IN_NOTES"; urls: string[] };
+export interface LineItemWithOption extends HousecallProEstimateLineItem {
+  optionId: string;
+  optionName: string | null;
+}
 
-export interface PhotoToAttach {
+export async function getEstimateLineItems(
+  client: HousecallProClient,
+  estimateId: string,
+): Promise<LineItemWithOption[]> {
+  const estimate = await getEstimate(client, estimateId);
+  const options = estimate.options ?? [];
+
+  const perOption = await Promise.all(
+    options.map(async (option) => {
+      const response = await client.request<
+        HousecallProPagedResponse<HousecallProEstimateLineItem>
+      >({
+        method: "GET",
+        path: `${ESTIMATES_PATH}/${estimateId}/options/${option.id}/line_items`,
+      });
+
+      return (response?.line_items ?? []).map((lineItem) => ({
+        ...lineItem,
+        optionId: option.id,
+        optionName: option.name ?? null,
+      }));
+    }),
+  );
+
+  return perOption.flat();
+}
+
+export interface PhotoReference {
   label: string;
   storageKey: string;
   signedUrl: string;
-}
-
-export async function attachPhotosToEstimate({
-  client,
-  estimateId,
-  photos,
-  uploadAttachment,
-}: {
-  client: HousecallProClient;
-  estimateId: string;
-  photos: readonly PhotoToAttach[];
-  uploadAttachment?: (photo: PhotoToAttach) => Promise<Buffer>;
-}): Promise<PhotoAttachmentOutcome> {
-  if (photos.length === 0) {
-    return { method: "LINKED_IN_NOTES", urls: [] };
-  }
-
-  if (uploadAttachment) {
-    try {
-      const first = photos[0];
-      const body = await uploadAttachment(first);
-
-      const response = await client.request<HousecallProAttachmentResponse>({
-        method: "POST",
-        path: `${ESTIMATES_PATH}/${estimateId}/attachments`,
-        body: {
-          file_name: `${first.label}.jpg`,
-          content_type: "image/jpeg",
-          data: body.toString("base64"),
-        },
-        attemptLimit: 2,
-      });
-
-      if (response?.id) {
-        return { method: "UPLOADED", attachmentId: response.id };
-      }
-    } catch (error) {
-      console.warn(
-        "[housecall-pro] attachment upload failed, falling back to signed links",
-        error instanceof Error ? error.message : error,
-      );
-    }
-  }
-
-  return {
-    method: "LINKED_IN_NOTES",
-    urls: photos.map((photo) => photo.signedUrl),
-  };
 }
 
 export function buildLineItemsFromCatalogueMatches(
@@ -122,13 +114,14 @@ export function buildLineItemsFromCatalogueMatches(
     openingIndex: number | null;
   }[],
 ): HousecallProEstimateLineItem[] {
-  return matches.map((match) => ({
+  return matches.map((match, index) => ({
     service_item_id: match.housecallProServiceId,
     name: match.serviceName,
     quantity: match.quantity,
-    kind: "service",
-    description: match.isAdditionalOpening
-      ? `Opening ${match.openingIndex ?? "?"}`
-      : undefined,
+    kind: "labor",
+    order_index: index,
+    ...(match.isAdditionalOpening
+      ? { description: `Opening ${match.openingIndex ?? "?"}` }
+      : {}),
   }));
 }

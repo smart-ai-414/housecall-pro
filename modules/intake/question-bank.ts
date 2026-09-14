@@ -4,6 +4,7 @@ export type QuestionId =
   | "WHAT_HAPPENED"
   | "PANE_COUNT"
   | "GLASS_TYPE_MARKING"
+  | "SAFETY_GLAZING_CONTEXT"
   | "OPENING_COUNT"
   | "ACCESS_HEIGHT"
   | "TEMPORARY_SECURING";
@@ -58,6 +59,22 @@ export const QUESTION_BANK: Record<QuestionId, BankedQuestion> = {
       "It is usually a stamp in the corner naming the maker and a standard. It tells us whether the pane is safety glass.",
     answerKind: "text",
   },
+  SAFETY_GLAZING_CONTEXT: {
+    id: "SAFETY_GLAZING_CONTEXT",
+    prompt:
+      "Does any of this describe where the glass is? Tell me all that apply.",
+    helper:
+      "Next to a door, in a bathroom, or low down near the floor usually means the code calls for safety glass. It changes what we order, so it is worth getting right.",
+    answerKind: "choice",
+    choices: [
+      "Right beside a door",
+      "In a bathroom or shower",
+      "The bottom of the glass is below knee height",
+      "In a stair or hallway",
+      "None of these",
+      "Not sure",
+    ],
+  },
   OPENING_COUNT: {
     id: "OPENING_COUNT",
     prompt: "How many separate panes or openings need work?",
@@ -94,7 +111,31 @@ export const OPENING_QUESTION_SEQUENCE: readonly QuestionId[] = [
   "CONTACT_DETAILS",
   "SERVICE_ADDRESS",
   "WHAT_HAPPENED",
+  "SAFETY_GLAZING_CONTEXT",
 ];
+
+export const SAFETY_GLAZING_QUESTION_ID: QuestionId = "SAFETY_GLAZING_CONTEXT";
+
+const SAFETY_GLAZING_NEGATIVE_ANSWERS = ["none of these", "no", "none"];
+
+export function safetyGlazingMayBeRequired(
+  answer: string | null,
+): boolean | null {
+  if (answer === null) return null;
+
+  const normalized = answer.trim().toLowerCase();
+  if (normalized === "") return null;
+
+  if (normalized.includes("not sure") || normalized.includes("unsure")) {
+    return null;
+  }
+
+  if (SAFETY_GLAZING_NEGATIVE_ANSWERS.some((value) => normalized === value)) {
+    return false;
+  }
+
+  return true;
+}
 
 export function isQuestionId(value: unknown): value is QuestionId {
   return typeof value === "string" && value in QUESTION_BANK;

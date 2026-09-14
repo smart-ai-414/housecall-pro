@@ -1,0 +1,5456 @@
+{
+  "exportedAt": "2026-09-14T04:17:25.351Z",
+  "method": "Recovered from service_item_id on historical line items. No price book endpoint exists on this API key.",
+  "note": "Identifiers and names only. Prices live in the Housecall Pro price book and are deliberately not recorded here.",
+  "estimatesScanned": 150,
+  "jobsScanned": 150,
+  "distinctServiceItems": 120,
+  "squareFootageBandedItems": 16,
+  "allServiceItems": [
+    {
+      "serviceItemId": "olit_a4b448846397478c822a3d8f06dbf838",
+      "name": "7 SQ FT Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 235,
+      "seenOn": {
+        "estimates": 121,
+        "jobs": 114
+      },
+      "namesObserved": [
+        {
+          "name": "7 SQ FT Glass replacement",
+          "count": 92
+        },
+        {
+          "name": "Glass replacement  - 7 SQ FT Glass replacement",
+          "count": 66
+        },
+        {
+          "name": "7 SqFt Residential Glass replacement",
+          "count": 31
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement",
+          "count": 23
+        },
+        {
+          "name": "Residential Glass - 7 SqFt Residential Glass replacement",
+          "count": 11
+        },
+        {
+          "name": "Residential Glass replacement",
+          "count": 2
+        },
+        {
+          "name": "7 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Custom Window Supply and Install",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 18 SqFt Residential Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 25 SQ FT Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 3 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement (INSTALL ONLY)",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 8 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "mirrors",
+          "count": 1
+        },
+        {
+          "name": "Window Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "WINDOW REPLACEMENT",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": true
+    },
+    {
+      "serviceItemId": "olit_217ba2df34404d2b9f70f448e420f31d",
+      "name": "Glass replacement  - Additional Glass - 7sq ft.",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - Additional Glass - 7sq ft.",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_dffbb411bb184ccc9d4406ba3162ead4",
+      "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 8,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - 8 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_da15ace49ad84a8ba0e0efcb4be40b42",
+      "name": "10 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 10,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "10 Glass replacement",
+          "count": 4
+        },
+        {
+          "name": "10 SqFt Residential Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c04cff4f70894861b65af3ff48aa5231",
+      "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+          "count": 2
+        },
+        {
+          "name": "12 SF IGU",
+          "count": 1
+        },
+        {
+          "name": "12 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_e7b87f1b0cba4b5389e5e9566bb42d4e",
+      "name": "12 SqFt Residential Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "12 SqFt Residential Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "12 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 12 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c8ec1dfbbd0b48d1a71e43cef7efe276",
+      "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 16,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "16 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_54ad30629fe1468595310d9dd5f00b39",
+      "name": "Glass for Sliding door up to 16 SF",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 16,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 4,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "Glass for Sliding door up to 16 SF",
+          "count": 11
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4e6b64481e2940a6ae994305249b5de7",
+      "name": "Replace 1 broken glass with blind inside in sliding door up to 18 SF  3-4 weeks lead time",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 18,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Replace 1 broken glass with blind inside in sliding door up to 18 SF  3-4 weeks lead time",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4bede7d22d0f438689ca3ee17d171065",
+      "name": "18 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 18,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "18 Glass replacement",
+          "count": 3
+        },
+        {
+          "name": "18 SqFt Residential Glass Replacement",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bafc0a9cfe194f058ef384c9cc1a0c71",
+      "name": "20 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 20,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "20 SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "20 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 20 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2b0c18f061c14ca4935eb08827d5cdca",
+      "name": "24SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 24,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "24SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - up to 24SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7d81a47acff4444fa1b412722f5f709d",
+      "name": "25 SqFt Residential Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 25,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "25 SqFt Residential Glass Replacement",
+          "count": 4
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_894176ce7ae04ccda5fcb098686fd2e0",
+      "name": "34 SF IGU Storefront Glass  replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 34,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c5a2122004c842a582d280881dee63d4",
+      "name": "Glass replacement  - 35 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 35,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 35 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_888eeea9463b40f798f3564b789db96d",
+      "name": "Glass replacement  - 36 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 36,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 36 SF IGU Storefront Glass",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_8620f8a5db1143a3b66d0e2c7c3a83a3",
+      "name": "1/2 tempered polish",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "1/2 tempered polish",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_ee6d625a42c24ec3962ba4f568261c2f",
+      "name": "1/4\" Diamond Wire",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "1/4\" Diamond Wire",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_4379b65d6b294584b392d7dc6eb95b0a",
+      "name": "1/8\" Clear  Annealed",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "1/8\" Clear  Annealed",
+          "count": 2
+        },
+        {
+          "name": "Glass - 3/16\" Thick Clear Tempered",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6ef02ed2efca426cb34fd5369bf57a15",
+      "name": "16 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": 16,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "16 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0bd7d13dc3e54392b1fd3b299adef205",
+      "name": "180 sliding shower door with sidelight 60 x 80",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 13,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "180 sliding shower door with sidelight 60 x 80",
+          "count": 5
+        },
+        {
+          "name": "Shower Glass - 180 shower door",
+          "count": 3
+        },
+        {
+          "name": "180 sliding shower door with sidelight 68 x 58",
+          "count": 2
+        },
+        {
+          "name": "180 sliding shower door with sidelight",
+          "count": 1
+        },
+        {
+          "name": "Shower Glass - 180 sliding shower door with sidelight 58 x 72",
+          "count": 1
+        },
+        {
+          "name": "Sliding shower with sidelight 59 x 74",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ebd5aa35200c4d5ba982d94efd861333",
+      "name": "24\" X 66\" Wood Frame - Door Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 9,
+      "seenOn": {
+        "estimates": 7,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "24\" X 66\" Wood Frame - Door Glass Replacement",
+          "count": 6
+        },
+        {
+          "name": "Glass replacement  - 24\" X 66\" Wood Frame - Door Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "Wood Frame - Door Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4458654f27fc4fca831f456627c821ca",
+      "name": "4848 corner shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "4848 corner shower",
+          "count": 2
+        },
+        {
+          "name": "Corner Shower - Glass Panels",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7760b723495941e0a065d158d4a44194",
+      "name": "5FT Wide (sliding door) glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 31,
+      "seenOn": {
+        "estimates": 15,
+        "jobs": 16
+      },
+      "namesObserved": [
+        {
+          "name": "5FT Wide (sliding door) glass replacement",
+          "count": 17
+        },
+        {
+          "name": "Sliding Door Up to 16 SqFt Glass Replacement",
+          "count": 4
+        },
+        {
+          "name": "Standard size sliding door glass replacement",
+          "count": 4
+        },
+        {
+          "name": "5FT Wide glass replacement",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Standard size sliding door glass replacement",
+          "count": 2
+        },
+        {
+          "name": "5FT Wide door glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Patio Door Up to 16 SqFt Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_79154923ced34786844614f42b5769b4",
+      "name": "6080 Straight Shower w/ Half Sidelite",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "6080 Straight Shower w/ Half Sidelite",
+          "count": 4
+        },
+        {
+          "name": "Straight Shower w/ Half Sidelites",
+          "count": 2
+        },
+        {
+          "name": "Straight Shower w/ Sidelite",
+          "count": 2
+        },
+        {
+          "name": "6096 Straight Shower w/ Half Sidelite",
+          "count": 1
+        },
+        {
+          "name": "Straight Shower w/ Half Sidelite",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_8b0d100b3db14c20819e3377a399c715",
+      "name": "6084 straight shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "6084 straight shower",
+          "count": 5
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_539f965fc4fc47f6b272b493aee9ee95",
+      "name": "7ft IG Annealed residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 6,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "7ft IG Annealed residential",
+          "count": 2
+        },
+        {
+          "name": "Bronze Aluminum Window",
+          "count": 2
+        },
+        {
+          "name": "Glass - 7ft IG Annealed residential",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2670e51386ec40a79f50b4fb34c6cce6",
+      "name": "9 X 66 sidelite glass kit",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "9 X 66 sidelite glass kit",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_72b86db1d99445e7832e58e329c35788",
+      "name": "Aluminum doors  - Narrow slab only",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Aluminum doors  - Narrow slab only",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2f7fccd5c36f4f3580d19faa999b0ae5",
+      "name": "Aluminum doors  - Single Door Replacement with Deadbolt",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 4,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Aluminum doors  - Single Door Replacement with Deadbolt",
+          "count": 2
+        },
+        {
+          "name": "Single Door Replacement with Deadbolt",
+          "count": 2
+        },
+        {
+          "name": "Single Door Replacement with Panic Hardware",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c58cc9a4515d4865866811f0f82c4288",
+      "name": "Aluminum doors  - Storefront Door Frame Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Aluminum doors  - Storefront Door Frame Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_1f46ebd8862147bf9aed0d622e6838de",
+      "name": "Arch Glass R24\"",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Arch Glass R24\"",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_351c0d7fd43f4bad9c5857d6cc432274",
+      "name": "Balance",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Balance",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f3c301243e2f4a869c78f50c2a588adf",
+      "name": "commercial door glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 12,
+      "seenOn": {
+        "estimates": 5,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "commercial door glass replacement",
+          "count": 5
+        },
+        {
+          "name": "Glass replacement  - commercial door glass replacement",
+          "count": 5
+        },
+        {
+          "name": "Commercial Door Glass Replacement",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_edb2fdb4e1d54cf9a300a75f8e27169c",
+      "name": "Commercial door repair - ADA overhead door closer",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial door repair - ADA overhead door closer",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c0ea50ae91fb435190346f356aa0edd3",
+      "name": "Commercial Door Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Door Service",
+          "count": 7
+        },
+        {
+          "name": "Custom Services",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2ffd490b22774581b14d07637606845e",
+      "name": "Commercial Glass Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 9,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Glass Service",
+          "count": 9
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ec15ef2fc7c44268b911cad7f72bd81c",
+      "name": "Commercial Hardware Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Hardware Service",
+          "count": 1
+        },
+        {
+          "name": "Fix bottom Flashbolt",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6688d88e35d24ad78e8f04824f890c47",
+      "name": "Commercial Storefront Glass Replacement - multiple",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Storefront Glass Replacement - multiple",
+          "count": 2
+        },
+        {
+          "name": "Storefront Partition",
+          "count": 2
+        },
+        {
+          "name": "Commercial Storefront Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_aaf184b443024b1e8db0caa767e1370b",
+      "name": "Commercial Window Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Window Service",
+          "count": 3
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4fb0bd2a9c3e48dfb6c1f1736e22e542",
+      "name": "Continous hinge",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Continous hinge",
+          "count": 3
+        },
+        {
+          "name": "Commercial door repair - Continous hinge",
+          "count": 1
+        },
+        {
+          "name": "Door handle repair",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_61a664ee51bb4beba9b213b93cb64283",
+      "name": "continuous hinge",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "continuous hinge",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_d4847c4fea094db5b7ddd7f5b9542000",
+      "name": "Custom Glass Supply",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 55,
+      "seenOn": {
+        "estimates": 33,
+        "jobs": 22
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Glass Supply",
+          "count": 38
+        },
+        {
+          "name": "Glass replacement  - Custom Glass Supply",
+          "count": 12
+        },
+        {
+          "name": "Custom Residential Glass - Monolite Custom Glass Supply",
+          "count": 2
+        },
+        {
+          "name": "Custom Window Supply",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Glass Pickup from Shop",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6feb3549968947b4a613f2752a1c401b",
+      "name": "Custom Glass Supply - In Frame",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 14,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 5
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Glass Supply - In Frame",
+          "count": 12
+        },
+        {
+          "name": "Glass replacement  - Custom Glass Supply - In Frame",
+          "count": 1
+        },
+        {
+          "name": "Repl. Glass in Frame Dropped Off at Shop",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_63a41d296dea4294bf674716c2f34c10",
+      "name": "Custom Mirror Supply & Install",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 8,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Mirror Supply & Install",
+          "count": 5
+        },
+        {
+          "name": "Custom Mirror Install",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Custom Mirror Supply",
+          "count": 2
+        },
+        {
+          "name": "Custom Mirror Supply",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - Custom Mirror Supply & Install",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4585a1f2667a42769eb3ab900df6aa86",
+      "name": "Custom Services - Custom Job",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Services - Custom Job",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7cc056ff710a4057904fae6eb40bba02",
+      "name": "Custom Window Operation Repair",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Window Operation Repair",
+          "count": 1
+        },
+        {
+          "name": "Repair Window Balancers",
+          "count": 1
+        },
+        {
+          "name": "Replacement Parts - Window Balancers",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_1728dc15050b42e89b3ac93ebb921778",
+      "name": "Custom Window Repair",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Window Repair",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_2349add91ae84440b56b8e5a2602a7f5",
+      "name": "DH Up to 101\"",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "DH Up to 101\"",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_9ca6392e0e7d45b597e2f06a0c67519e",
+      "name": "DH Up to 101\"",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "DH Up to 101\"",
+          "count": 3
+        },
+        {
+          "name": "Vinyl Windows - DH Up to 101\"",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbsd_de5b62ae8d4e4d3b80f395a420c9dea3",
+      "name": "DISCOUNT =)",
+      "kind": "percent discount",
+      "serviceItemType": "Pricebook::StandardDiscount",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 7,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "DISCOUNT =)",
+          "count": 7
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbsd_b9f115d1bb604692b9d3927020690d46",
+      "name": "Discount10",
+      "kind": "percent discount",
+      "serviceItemType": "Pricebook::StandardDiscount",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 27,
+      "seenOn": {
+        "estimates": 26,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Discount10",
+          "count": 27
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ac2e78fec85d4a3dab0759f46b7208dc",
+      "name": "Door closer",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Door closer",
+          "count": 1
+        },
+        {
+          "name": "Replace push pedal",
+          "count": 1
+        },
+        {
+          "name": "trulite door closer",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0e7a71d03d004c87a8a2be95513601f6",
+      "name": "Door kit 22 x 36 LowE Clear W/Internal Blinds",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Door kit 22 x 36 LowE Clear W/Internal Blinds",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_15860fa75e724796af52f274e332a558",
+      "name": "Door kit 24 x 38 clear with grid",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Door kit 24 x 38 clear with grid",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_345ddc75b896434db00aff52b92fe3fa",
+      "name": "Door kit 24 x 66 Clear W/ Internal Blinds",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Door kit 24 x 66 Clear W/ Internal Blinds",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7afae821e6e4464288054d287c25f1da",
+      "name": "Door kit 24 x 66 low E",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Door kit 24 x 66 low E",
+          "count": 1
+        },
+        {
+          "name": "Door Kit 24\" X 66\" Low E Clear",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - Door Kit 24\" X 66\" Low E Clear",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_90b8d399fbf84bd5a944552da30baeac",
+      "name": "Door Kit Full Lite Privacy Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Door Kit Full Lite Privacy Glass",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_38f750f8bd8c4b8d90443e4b15574d4f",
+      "name": "door sweep",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "door sweep",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_1837b37de8664de19377deaf7b25c662",
+      "name": "equipment - Equipment Rental - Cherry Picker",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "equipment - Equipment Rental - Cherry Picker",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_13d43317e59e450d83f4ea34837a1ffc",
+      "name": "equipment - scaffold rental",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 9,
+      "seenOn": {
+        "estimates": 5,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "equipment - scaffold rental",
+          "count": 5
+        },
+        {
+          "name": "scaffold rental",
+          "count": 4
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_be430687acd5429c98ae0b8dff91da05",
+      "name": "FEES - ADMIN FEE",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 33,
+      "seenOn": {
+        "estimates": 20,
+        "jobs": 13
+      },
+      "namesObserved": [
+        {
+          "name": "FEES - ADMIN FEE",
+          "count": 29
+        },
+        {
+          "name": "ALUMINUM WRAP",
+          "count": 2
+        },
+        {
+          "name": "Clear Low-E Door Glass - 5 Light External Grille",
+          "count": 1
+        },
+        {
+          "name": "REPLACEMENT PARTS",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_925bcef6589f4d1ebc60bec3c097ea88",
+      "name": "FEES - Out of Area Surcharge",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "FEES - Out of Area Surcharge",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_85ba9c77bf9d483eb70e3e1ea8f1e5d0",
+      "name": "FLEX BRICK MOLD",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "FLEX BRICK MOLD",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_39f28d07a3e94041ba9d980ae5241524",
+      "name": "Freight Fee",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Freight Fee",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_861c01d7d6814534a30647729d084675",
+      "name": "Glass - 1\" IGU SB 60",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - 1\" IGU SB 60",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_8542ad4fe00c43d280f7843b95338fe5",
+      "name": "Glass - 1/4\" clear tempered",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 9
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - 1/4\" clear tempered",
+          "count": 5
+        },
+        {
+          "name": "Glass - 3/8\" clear",
+          "count": 5
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_0141c19d9ce848918d2724d6cc1fb9b6",
+      "name": "Glass - 3/16\" Clear tempered",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - 3/16\" Clear tempered",
+          "count": 2
+        },
+        {
+          "name": "3/16\" Clear tempered",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_11dbde3dffb8419e81a278cec7b09997",
+      "name": "Glass - Door Kit - 24\" X 66\" LowE Clear",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - Door Kit - 24\" X 66\" LowE Clear",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_5411f760a871462e878a7c478a60faab",
+      "name": "Glass - IG Annealed residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 54,
+      "seenOn": {
+        "estimates": 28,
+        "jobs": 26
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - IG Annealed residential",
+          "count": 42
+        },
+        {
+          "name": "IG Annealed residential",
+          "count": 10
+        },
+        {
+          "name": "10 sq ft - IG Annealed residential",
+          "count": 1
+        },
+        {
+          "name": "Bronze Window",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_daf848b3014f47dc91b1bfa384c85b9f",
+      "name": "Glass - IG tempered residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 39,
+      "seenOn": {
+        "estimates": 26,
+        "jobs": 13
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - IG tempered residential",
+          "count": 35
+        },
+        {
+          "name": "Glass - IG tempered residential - Sliding Door",
+          "count": 2
+        },
+        {
+          "name": "2 bronze storm window to replace existing",
+          "count": 1
+        },
+        {
+          "name": "Glass - Shower Door",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_7f782cdb762b44c8ba32a5cb972b2750",
+      "name": "Glass - Mirror",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - Mirror",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_a273b0de5d584def82369094772f57af",
+      "name": "Glass - MISC 100",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 77,
+      "seenOn": {
+        "estimates": 46,
+        "jobs": 31
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - MISC 100",
+          "count": 69
+        },
+        {
+          "name": "Shower",
+          "count": 2
+        },
+        {
+          "name": "Glass - 100",
+          "count": 1
+        },
+        {
+          "name": "Glass - MISC",
+          "count": 1
+        },
+        {
+          "name": "Glass - MISC 200",
+          "count": 1
+        },
+        {
+          "name": "Labor",
+          "count": 1
+        },
+        {
+          "name": "misc",
+          "count": 1
+        },
+        {
+          "name": "MISC 100",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_57d64e5f490944768dba9d200d7413be",
+      "name": "Glass - MISC 50",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 77,
+      "seenOn": {
+        "estimates": 44,
+        "jobs": 33
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - MISC 50",
+          "count": 67
+        },
+        {
+          "name": "MISC 50",
+          "count": 8
+        },
+        {
+          "name": "Glass",
+          "count": 1
+        },
+        {
+          "name": "Labor Install",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_fc4816217d194856aab50b7ec4785236",
+      "name": "Glass - Shape Template Charge",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 6,
+      "seenOn": {
+        "estimates": 4,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - Shape Template Charge",
+          "count": 6
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_9fb79f79c8ef43dcb2817f9ad9102e59",
+      "name": "Glass - shower glass",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - shower glass",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_07d168a1cf09445db235f9b34115b90e",
+      "name": "Glass - Straight shower clamp",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - Straight shower clamp",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_b42960cc5ffe447caa137b8ccde59ce4",
+      "name": "Glass replacement  - 1/8\" up to 5FT",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 1/8\" up to 5FT",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a8efbb5e559744dea6cb06bcec52758a",
+      "name": "Glass replacement  - 8.5 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 8.5 Glass replacement",
+          "count": 3
+        },
+        {
+          "name": "8.5 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a949bcf2008d46e0bbbf846436a5dad8",
+      "name": "Glass replacement  - 8FT Wide (residential sliding door) glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 8FT Wide (residential sliding door) glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_592193fde98e4997bef2a41012480e6c",
+      "name": "Glass replacement  - Arch Glass R16",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - Arch Glass R16",
+          "count": 2
+        },
+        {
+          "name": "Arch Glass R16",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f84dde23abfd412986da0a29732f89bd",
+      "name": "Half Lite - Glass Kit Replacement - 24 x 38",
+      "kind": "materials",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": "",
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Half Lite - Glass Kit Replacement - 24 x 38",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_b212ae5b6d6d4877beec698663e67b51",
+      "name": "Half Screen",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Half Screen",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_caa54ac58772476ca1332ebcc01087c6",
+      "name": "Hardware - 940.80.077",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Hardware - 940.80.077",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_e121b65c8f8347cc803bbfb5397672f1",
+      "name": "Hardware - Drip Guard",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 6,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Hardware - Drip Guard",
+          "count": 2
+        },
+        {
+          "name": "Hardware - Stop Strip",
+          "count": 2
+        },
+        {
+          "name": "j mold",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_40476556048e4d5884511510f623918a",
+      "name": "hardware - replace existing Over Head concealed ADA Closer",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "hardware - replace existing Over Head concealed ADA Closer",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6b5f874c614643d5abf5918e47fa0646",
+      "name": "Hollow Metal Doors  - hollow Metal door",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Hollow Metal Doors  - hollow Metal door",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ab13953251014b42bab7d3ca4ab9c3cc",
+      "name": "hourly rate  - 1 tech blended",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "hourly rate  - 1 tech blended",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_34ecfe7d164046048c609ee97ffa247e",
+      "name": "hourly rate  - 2 man crew with truck blended",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 44,
+      "seenOn": {
+        "estimates": 30,
+        "jobs": 14
+      },
+      "namesObserved": [
+        {
+          "name": "hourly rate  - 2 man crew with truck blended",
+          "count": 26
+        },
+        {
+          "name": "2 man crew",
+          "count": 4
+        },
+        {
+          "name": "Labor",
+          "count": 4
+        },
+        {
+          "name": "Hourly rate  - 2 man crew",
+          "count": 2
+        },
+        {
+          "name": "Labor - 2 man crew",
+          "count": 2
+        },
+        {
+          "name": "2 Man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "hourly rate for install  - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "hourly rate for screen install and hardware - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "Hourly rate to install glass - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "Labor  - 2 man crew",
+          "count": 1
+        },
+        {
+          "name": "Labor - 2 man crew with truck blended",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f57a24cfd3064e8a9ef9901e7c617dfe",
+      "name": "Labor",
+      "kind": "materials",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Labor",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - casement 101 united",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bdf5abbc241344ab9dc85ee29a605f9c",
+      "name": "minimum charge to replace broken glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "minimum charge to replace broken glass",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_3416e2804a284eca8c8de9e24b639b1d",
+      "name": "mirror mastic",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "mirror mastic",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_482eeb8875cb4bb29c163ec386218afe",
+      "name": "octagon shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "octagon shower",
+          "count": 6
+        },
+        {
+          "name": "Octagon shower",
+          "count": 1
+        },
+        {
+          "name": "Octagon Shower",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a0150d3f5513490c84135b54233ee748",
+      "name": "one man board up",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "one man board up",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_810730d657bc4955967897df04ba0493",
+      "name": "Pair Door Aluminum std hardware.",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Pair Door Aluminum std hardware.",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_306bd9ecd89f43709ea28a68bd849a2d",
+      "name": "panic bar (replace pushbar)",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "panic bar (replace pushbar)",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_fd48fc2425d34168849b4c8985ba495f",
+      "name": "Picture Window",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Picture Window",
+          "count": 1
+        },
+        {
+          "name": "Picture Window - Obscured",
+          "count": 1
+        },
+        {
+          "name": "Picture Window - Replace & Installation",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0113850f49d9461a99c2492f2bee6dee",
+      "name": "Picture Window 101 united",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Picture Window 101 united",
+          "count": 3
+        },
+        {
+          "name": "Picture Window 101 United",
+          "count": 3
+        },
+        {
+          "name": "Picture Window",
+          "count": 1
+        },
+        {
+          "name": "PICTURE WINDOW",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - picture window 101 united",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - Picture Window 101 United",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f17c8f2646e24f71b739978bae051ac1",
+      "name": "Polished Shower Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Polished Shower Glass",
+          "count": 2
+        },
+        {
+          "name": "Door Kit low E with Grid",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ee764578a2d9407487f7821fdc8b1b9e",
+      "name": "Quantity discount. 2hrs service call",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Quantity discount. 2hrs service call",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_42e56f02133546b6b75f1cca51125121",
+      "name": "Repair - Additional window balance/spiral replace",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Repair - Additional window balance/spiral replace",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bfe4b71dfacc48b7b1b16c2beeec6da6",
+      "name": "Residential Door Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 7,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Door Service",
+          "count": 6
+        },
+        {
+          "name": "Custom Services - Residential Door Service",
+          "count": 3
+        },
+        {
+          "name": "Custom Job",
+          "count": 1
+        },
+        {
+          "name": "Door repair",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_23e585dec0d2490986edaa1048cd9b49",
+      "name": "Residential Glass Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 23,
+      "seenOn": {
+        "estimates": 21,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Glass Service",
+          "count": 20
+        },
+        {
+          "name": "Glass replacement  - Residential Glass Service",
+          "count": 3
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_47e48a49f2dc403d908ecb217b942df7",
+      "name": "Residential sliding doors - 5 foot wide sliding door",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Residential sliding doors - 5 foot wide sliding door",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a098587a6a8b4b09a44f6bb9d6fe712f",
+      "name": "Residential Window Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 28,
+      "seenOn": {
+        "estimates": 24,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Window Service",
+          "count": 25
+        },
+        {
+          "name": "Custom Services - Residential Window Service",
+          "count": 2
+        },
+        {
+          "name": "Custom Job",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_59d82936ba8747ca94cd07c622f17f3c",
+      "name": "Service Call - In-home consult",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 8
+      },
+      "namesObserved": [
+        {
+          "name": "Service Call - In-home consult",
+          "count": 6
+        },
+        {
+          "name": "Door repair",
+          "count": 1
+        },
+        {
+          "name": "on site consult",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_8ab0a7223e024f548a9c651fdf96d8ba",
+      "name": "Service Call - Service Call",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 132,
+      "seenOn": {
+        "estimates": 58,
+        "jobs": 74
+      },
+      "namesObserved": [
+        {
+          "name": "Service Call - Service Call",
+          "count": 108
+        },
+        {
+          "name": "Service Call",
+          "count": 8
+        },
+        {
+          "name": "Service Call - Custom",
+          "count": 3
+        },
+        {
+          "name": "Entry Door Leak Repair",
+          "count": 2
+        },
+        {
+          "name": "Entry Door Sidelight Replacement",
+          "count": 2
+        },
+        {
+          "name": "Service Call - Wine Lounge Mirror / Shower Door",
+          "count": 2
+        },
+        {
+          "name": "Multi Picture Windows",
+          "count": 1
+        },
+        {
+          "name": "Remove Shower Glass",
+          "count": 1
+        },
+        {
+          "name": "Service Call - Shower Door",
+          "count": 1
+        },
+        {
+          "name": "Service Call - Window Balancers",
+          "count": 1
+        },
+        {
+          "name": "Service Call -CUSTOM APPOINTMENT",
+          "count": 1
+        },
+        {
+          "name": "SLIDING SHOWER",
+          "count": 1
+        },
+        {
+          "name": "Window Replacement-Custom",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_f0d642eda1c84beaa62feededafabca0",
+      "name": "Shower",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Shower",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_873f85d9ddf14f14ba51d3fe31a77552",
+      "name": "Shower Glass - 4084 straight shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 14,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 5
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Glass - 4084 straight shower",
+          "count": 6
+        },
+        {
+          "name": "4084 straight shower",
+          "count": 4
+        },
+        {
+          "name": "Double Door Shower",
+          "count": 2
+        },
+        {
+          "name": "4084 straight shower door",
+          "count": 1
+        },
+        {
+          "name": "Service Call",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_93b727ee60e44b779777d7e92a020b84",
+      "name": "Shower Glass - 90 Angles Right Shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 15,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 6
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Glass - 90 Angles Right Shower",
+          "count": 8
+        },
+        {
+          "name": "90 Angles Right Shower",
+          "count": 4
+        },
+        {
+          "name": "Custom Shower Installation",
+          "count": 2
+        },
+        {
+          "name": "Shower Glass - 90 Angles Left Shower",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_097a2de23bfe45dfa50060f407d1ea27",
+      "name": "Shower Glass - serenity corner slider",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Glass - serenity corner slider",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_e901e20e349647e38c6f0788bffe2a18",
+      "name": "Shower Panel",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Panel",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_66881698dd8e4157bbcbd51f97d73829",
+      "name": "single glass in wood",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "single glass in wood",
+          "count": 3
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_51d890f461534c99bf6d90a62a32f95f",
+      "name": "Single Glass In Wood Frame",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Single Glass In Wood Frame",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0934ba62bf164136a650be3ae574a1c9",
+      "name": "Sliding Patio Screen (single)",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Sliding Patio Screen (single)",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_de6dcc48ab9c4f0aa79fa4f19330ef86",
+      "name": "SS Up to 101\"",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "SS Up to 101\"",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_3151edec76774065b58278c6ad074940",
+      "name": "Storm door Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Storm door Glass replacement",
+          "count": 5
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2965960c714e4123b1182b96c7fa8a41",
+      "name": "Vinyl Windows - SH 101 united",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Vinyl Windows - SH 101 united",
+          "count": 2
+        },
+        {
+          "name": "Double sider",
+          "count": 1
+        },
+        {
+          "name": "Materials",
+          "count": 1
+        },
+        {
+          "name": "SH 101 united",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_21dfe71cb015493b988bc0b70f3b6785",
+      "name": "wheels - 1010 Casters Kawneer",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "wheels - 1010 Casters Kawneer",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4260ab16047e41b1b674b1f81e6b4547",
+      "name": "Window Screens - Window Screens",
+      "kind": "materials",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Window Screens - Window Screens",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    }
+  ],
+  "squareFootageBanded": [
+    {
+      "serviceItemId": "olit_a4b448846397478c822a3d8f06dbf838",
+      "name": "7 SQ FT Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 235,
+      "seenOn": {
+        "estimates": 121,
+        "jobs": 114
+      },
+      "namesObserved": [
+        {
+          "name": "7 SQ FT Glass replacement",
+          "count": 92
+        },
+        {
+          "name": "Glass replacement  - 7 SQ FT Glass replacement",
+          "count": 66
+        },
+        {
+          "name": "7 SqFt Residential Glass replacement",
+          "count": 31
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement",
+          "count": 23
+        },
+        {
+          "name": "Residential Glass - 7 SqFt Residential Glass replacement",
+          "count": 11
+        },
+        {
+          "name": "Residential Glass replacement",
+          "count": 2
+        },
+        {
+          "name": "7 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Custom Window Supply and Install",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 18 SqFt Residential Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 25 SQ FT Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 3 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement (INSTALL ONLY)",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 8 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "mirrors",
+          "count": 1
+        },
+        {
+          "name": "Window Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "WINDOW REPLACEMENT",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": true
+    },
+    {
+      "serviceItemId": "olit_217ba2df34404d2b9f70f448e420f31d",
+      "name": "Glass replacement  - Additional Glass - 7sq ft.",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - Additional Glass - 7sq ft.",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_dffbb411bb184ccc9d4406ba3162ead4",
+      "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 8,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - 8 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_da15ace49ad84a8ba0e0efcb4be40b42",
+      "name": "10 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 10,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "10 Glass replacement",
+          "count": 4
+        },
+        {
+          "name": "10 SqFt Residential Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c04cff4f70894861b65af3ff48aa5231",
+      "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+          "count": 2
+        },
+        {
+          "name": "12 SF IGU",
+          "count": 1
+        },
+        {
+          "name": "12 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_e7b87f1b0cba4b5389e5e9566bb42d4e",
+      "name": "12 SqFt Residential Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "12 SqFt Residential Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "12 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 12 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c8ec1dfbbd0b48d1a71e43cef7efe276",
+      "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 16,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "16 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_54ad30629fe1468595310d9dd5f00b39",
+      "name": "Glass for Sliding door up to 16 SF",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 16,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 4,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "Glass for Sliding door up to 16 SF",
+          "count": 11
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4e6b64481e2940a6ae994305249b5de7",
+      "name": "Replace 1 broken glass with blind inside in sliding door up to 18 SF  3-4 weeks lead time",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 18,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Replace 1 broken glass with blind inside in sliding door up to 18 SF  3-4 weeks lead time",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4bede7d22d0f438689ca3ee17d171065",
+      "name": "18 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 18,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "18 Glass replacement",
+          "count": 3
+        },
+        {
+          "name": "18 SqFt Residential Glass Replacement",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bafc0a9cfe194f058ef384c9cc1a0c71",
+      "name": "20 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 20,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "20 SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "20 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 20 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2b0c18f061c14ca4935eb08827d5cdca",
+      "name": "24SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 24,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "24SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - up to 24SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7d81a47acff4444fa1b412722f5f709d",
+      "name": "25 SqFt Residential Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 25,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "25 SqFt Residential Glass Replacement",
+          "count": 4
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_894176ce7ae04ccda5fcb098686fd2e0",
+      "name": "34 SF IGU Storefront Glass  replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 34,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c5a2122004c842a582d280881dee63d4",
+      "name": "Glass replacement  - 35 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 35,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 35 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_888eeea9463b40f798f3564b789db96d",
+      "name": "Glass replacement  - 36 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 36,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 36 SF IGU Storefront Glass",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    }
+  ],
+  "bandNeedsHumanRuling": [
+    {
+      "serviceItemId": "olit_6ef02ed2efca426cb34fd5369bf57a15",
+      "name": "16 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": 16,
+      "timesSeen": 1,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "16 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    }
+  ],
+  "seenUnderMultipleNames": [
+    {
+      "serviceItemId": "olit_a4b448846397478c822a3d8f06dbf838",
+      "name": "7 SQ FT Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 235,
+      "seenOn": {
+        "estimates": 121,
+        "jobs": 114
+      },
+      "namesObserved": [
+        {
+          "name": "7 SQ FT Glass replacement",
+          "count": 92
+        },
+        {
+          "name": "Glass replacement  - 7 SQ FT Glass replacement",
+          "count": 66
+        },
+        {
+          "name": "7 SqFt Residential Glass replacement",
+          "count": 31
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement",
+          "count": 23
+        },
+        {
+          "name": "Residential Glass - 7 SqFt Residential Glass replacement",
+          "count": 11
+        },
+        {
+          "name": "Residential Glass replacement",
+          "count": 2
+        },
+        {
+          "name": "7 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Custom Window Supply and Install",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 18 SqFt Residential Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 25 SQ FT Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 3 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement (INSTALL ONLY)",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 8 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "mirrors",
+          "count": 1
+        },
+        {
+          "name": "Window Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "WINDOW REPLACEMENT",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": true
+    },
+    {
+      "serviceItemId": "olit_dffbb411bb184ccc9d4406ba3162ead4",
+      "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 8,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "8 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - 8 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_da15ace49ad84a8ba0e0efcb4be40b42",
+      "name": "10 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 10,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "10 Glass replacement",
+          "count": 4
+        },
+        {
+          "name": "10 SqFt Residential Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c04cff4f70894861b65af3ff48aa5231",
+      "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 12 SF IGU Storefront Glass",
+          "count": 2
+        },
+        {
+          "name": "12 SF IGU",
+          "count": 1
+        },
+        {
+          "name": "12 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_e7b87f1b0cba4b5389e5e9566bb42d4e",
+      "name": "12 SqFt Residential Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 12,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "12 SqFt Residential Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "12 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 12 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c8ec1dfbbd0b48d1a71e43cef7efe276",
+      "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 16,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "16 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "16 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4bede7d22d0f438689ca3ee17d171065",
+      "name": "18 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 18,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "18 Glass replacement",
+          "count": 3
+        },
+        {
+          "name": "18 SqFt Residential Glass Replacement",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bafc0a9cfe194f058ef384c9cc1a0c71",
+      "name": "20 SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 20,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "20 SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "20 SqFt IGU Commercial Storefront Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 20 SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2b0c18f061c14ca4935eb08827d5cdca",
+      "name": "24SF IGU Storefront Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 24,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "24SF IGU Storefront Glass",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - up to 24SF IGU Storefront Glass",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_894176ce7ae04ccda5fcb098686fd2e0",
+      "name": "34 SF IGU Storefront Glass  replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 34,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 34 SF IGU Storefront Glass  replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_4379b65d6b294584b392d7dc6eb95b0a",
+      "name": "1/8\" Clear  Annealed",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "1/8\" Clear  Annealed",
+          "count": 2
+        },
+        {
+          "name": "Glass - 3/16\" Thick Clear Tempered",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0bd7d13dc3e54392b1fd3b299adef205",
+      "name": "180 sliding shower door with sidelight 60 x 80",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 13,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "180 sliding shower door with sidelight 60 x 80",
+          "count": 5
+        },
+        {
+          "name": "Shower Glass - 180 shower door",
+          "count": 3
+        },
+        {
+          "name": "180 sliding shower door with sidelight 68 x 58",
+          "count": 2
+        },
+        {
+          "name": "180 sliding shower door with sidelight",
+          "count": 1
+        },
+        {
+          "name": "Shower Glass - 180 sliding shower door with sidelight 58 x 72",
+          "count": 1
+        },
+        {
+          "name": "Sliding shower with sidelight 59 x 74",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ebd5aa35200c4d5ba982d94efd861333",
+      "name": "24\" X 66\" Wood Frame - Door Glass Replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 9,
+      "seenOn": {
+        "estimates": 7,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "24\" X 66\" Wood Frame - Door Glass Replacement",
+          "count": 6
+        },
+        {
+          "name": "Glass replacement  - 24\" X 66\" Wood Frame - Door Glass Replacement",
+          "count": 2
+        },
+        {
+          "name": "Wood Frame - Door Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4458654f27fc4fca831f456627c821ca",
+      "name": "4848 corner shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "4848 corner shower",
+          "count": 2
+        },
+        {
+          "name": "Corner Shower - Glass Panels",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7760b723495941e0a065d158d4a44194",
+      "name": "5FT Wide (sliding door) glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 31,
+      "seenOn": {
+        "estimates": 15,
+        "jobs": 16
+      },
+      "namesObserved": [
+        {
+          "name": "5FT Wide (sliding door) glass replacement",
+          "count": 17
+        },
+        {
+          "name": "Sliding Door Up to 16 SqFt Glass Replacement",
+          "count": 4
+        },
+        {
+          "name": "Standard size sliding door glass replacement",
+          "count": 4
+        },
+        {
+          "name": "5FT Wide glass replacement",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Standard size sliding door glass replacement",
+          "count": 2
+        },
+        {
+          "name": "5FT Wide door glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Patio Door Up to 16 SqFt Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_79154923ced34786844614f42b5769b4",
+      "name": "6080 Straight Shower w/ Half Sidelite",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "6080 Straight Shower w/ Half Sidelite",
+          "count": 4
+        },
+        {
+          "name": "Straight Shower w/ Half Sidelites",
+          "count": 2
+        },
+        {
+          "name": "Straight Shower w/ Sidelite",
+          "count": 2
+        },
+        {
+          "name": "6096 Straight Shower w/ Half Sidelite",
+          "count": 1
+        },
+        {
+          "name": "Straight Shower w/ Half Sidelite",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_539f965fc4fc47f6b272b493aee9ee95",
+      "name": "7ft IG Annealed residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 6,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "7ft IG Annealed residential",
+          "count": 2
+        },
+        {
+          "name": "Bronze Aluminum Window",
+          "count": 2
+        },
+        {
+          "name": "Glass - 7ft IG Annealed residential",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2f7fccd5c36f4f3580d19faa999b0ae5",
+      "name": "Aluminum doors  - Single Door Replacement with Deadbolt",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 4,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Aluminum doors  - Single Door Replacement with Deadbolt",
+          "count": 2
+        },
+        {
+          "name": "Single Door Replacement with Deadbolt",
+          "count": 2
+        },
+        {
+          "name": "Single Door Replacement with Panic Hardware",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f3c301243e2f4a869c78f50c2a588adf",
+      "name": "commercial door glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 12,
+      "seenOn": {
+        "estimates": 5,
+        "jobs": 7
+      },
+      "namesObserved": [
+        {
+          "name": "commercial door glass replacement",
+          "count": 5
+        },
+        {
+          "name": "Glass replacement  - commercial door glass replacement",
+          "count": 5
+        },
+        {
+          "name": "Commercial Door Glass Replacement",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_c0ea50ae91fb435190346f356aa0edd3",
+      "name": "Commercial Door Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Door Service",
+          "count": 7
+        },
+        {
+          "name": "Custom Services",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ec15ef2fc7c44268b911cad7f72bd81c",
+      "name": "Commercial Hardware Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Hardware Service",
+          "count": 1
+        },
+        {
+          "name": "Fix bottom Flashbolt",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6688d88e35d24ad78e8f04824f890c47",
+      "name": "Commercial Storefront Glass Replacement - multiple",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Commercial Storefront Glass Replacement - multiple",
+          "count": 2
+        },
+        {
+          "name": "Storefront Partition",
+          "count": 2
+        },
+        {
+          "name": "Commercial Storefront Glass Replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_4fb0bd2a9c3e48dfb6c1f1736e22e542",
+      "name": "Continous hinge",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Continous hinge",
+          "count": 3
+        },
+        {
+          "name": "Commercial door repair - Continous hinge",
+          "count": 1
+        },
+        {
+          "name": "Door handle repair",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_d4847c4fea094db5b7ddd7f5b9542000",
+      "name": "Custom Glass Supply",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 55,
+      "seenOn": {
+        "estimates": 33,
+        "jobs": 22
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Glass Supply",
+          "count": 38
+        },
+        {
+          "name": "Glass replacement  - Custom Glass Supply",
+          "count": 12
+        },
+        {
+          "name": "Custom Residential Glass - Monolite Custom Glass Supply",
+          "count": 2
+        },
+        {
+          "name": "Custom Window Supply",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Glass Pickup from Shop",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_6feb3549968947b4a613f2752a1c401b",
+      "name": "Custom Glass Supply - In Frame",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 14,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 5
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Glass Supply - In Frame",
+          "count": 12
+        },
+        {
+          "name": "Glass replacement  - Custom Glass Supply - In Frame",
+          "count": 1
+        },
+        {
+          "name": "Repl. Glass in Frame Dropped Off at Shop",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_63a41d296dea4294bf674716c2f34c10",
+      "name": "Custom Mirror Supply & Install",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 8,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Mirror Supply & Install",
+          "count": 5
+        },
+        {
+          "name": "Custom Mirror Install",
+          "count": 2
+        },
+        {
+          "name": "Glass replacement  - Custom Mirror Supply",
+          "count": 2
+        },
+        {
+          "name": "Custom Mirror Supply",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - Custom Mirror Supply & Install",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7cc056ff710a4057904fae6eb40bba02",
+      "name": "Custom Window Operation Repair",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Custom Window Operation Repair",
+          "count": 1
+        },
+        {
+          "name": "Repair Window Balancers",
+          "count": 1
+        },
+        {
+          "name": "Replacement Parts - Window Balancers",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_9ca6392e0e7d45b597e2f06a0c67519e",
+      "name": "DH Up to 101\"",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "DH Up to 101\"",
+          "count": 3
+        },
+        {
+          "name": "Vinyl Windows - DH Up to 101\"",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_ac2e78fec85d4a3dab0759f46b7208dc",
+      "name": "Door closer",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Door closer",
+          "count": 1
+        },
+        {
+          "name": "Replace push pedal",
+          "count": 1
+        },
+        {
+          "name": "trulite door closer",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_7afae821e6e4464288054d287c25f1da",
+      "name": "Door kit 24 x 66 low E",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Door kit 24 x 66 low E",
+          "count": 1
+        },
+        {
+          "name": "Door Kit 24\" X 66\" Low E Clear",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - Door Kit 24\" X 66\" Low E Clear",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_13d43317e59e450d83f4ea34837a1ffc",
+      "name": "equipment - scaffold rental",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 9,
+      "seenOn": {
+        "estimates": 5,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "equipment - scaffold rental",
+          "count": 5
+        },
+        {
+          "name": "scaffold rental",
+          "count": 4
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_be430687acd5429c98ae0b8dff91da05",
+      "name": "FEES - ADMIN FEE",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 33,
+      "seenOn": {
+        "estimates": 20,
+        "jobs": 13
+      },
+      "namesObserved": [
+        {
+          "name": "FEES - ADMIN FEE",
+          "count": 29
+        },
+        {
+          "name": "ALUMINUM WRAP",
+          "count": 2
+        },
+        {
+          "name": "Clear Low-E Door Glass - 5 Light External Grille",
+          "count": 1
+        },
+        {
+          "name": "REPLACEMENT PARTS",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_8542ad4fe00c43d280f7843b95338fe5",
+      "name": "Glass - 1/4\" clear tempered",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 9
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - 1/4\" clear tempered",
+          "count": 5
+        },
+        {
+          "name": "Glass - 3/8\" clear",
+          "count": 5
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_0141c19d9ce848918d2724d6cc1fb9b6",
+      "name": "Glass - 3/16\" Clear tempered",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - 3/16\" Clear tempered",
+          "count": 2
+        },
+        {
+          "name": "3/16\" Clear tempered",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_5411f760a871462e878a7c478a60faab",
+      "name": "Glass - IG Annealed residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 54,
+      "seenOn": {
+        "estimates": 28,
+        "jobs": 26
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - IG Annealed residential",
+          "count": 42
+        },
+        {
+          "name": "IG Annealed residential",
+          "count": 10
+        },
+        {
+          "name": "10 sq ft - IG Annealed residential",
+          "count": 1
+        },
+        {
+          "name": "Bronze Window",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_daf848b3014f47dc91b1bfa384c85b9f",
+      "name": "Glass - IG tempered residential",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 39,
+      "seenOn": {
+        "estimates": 26,
+        "jobs": 13
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - IG tempered residential",
+          "count": 35
+        },
+        {
+          "name": "Glass - IG tempered residential - Sliding Door",
+          "count": 2
+        },
+        {
+          "name": "2 bronze storm window to replace existing",
+          "count": 1
+        },
+        {
+          "name": "Glass - Shower Door",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_a273b0de5d584def82369094772f57af",
+      "name": "Glass - MISC 100",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 77,
+      "seenOn": {
+        "estimates": 46,
+        "jobs": 31
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - MISC 100",
+          "count": 69
+        },
+        {
+          "name": "Shower",
+          "count": 2
+        },
+        {
+          "name": "Glass - 100",
+          "count": 1
+        },
+        {
+          "name": "Glass - MISC",
+          "count": 1
+        },
+        {
+          "name": "Glass - MISC 200",
+          "count": 1
+        },
+        {
+          "name": "Labor",
+          "count": 1
+        },
+        {
+          "name": "misc",
+          "count": 1
+        },
+        {
+          "name": "MISC 100",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_57d64e5f490944768dba9d200d7413be",
+      "name": "Glass - MISC 50",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 77,
+      "seenOn": {
+        "estimates": 44,
+        "jobs": 33
+      },
+      "namesObserved": [
+        {
+          "name": "Glass - MISC 50",
+          "count": 67
+        },
+        {
+          "name": "MISC 50",
+          "count": 8
+        },
+        {
+          "name": "Glass",
+          "count": 1
+        },
+        {
+          "name": "Labor Install",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a8efbb5e559744dea6cb06bcec52758a",
+      "name": "Glass replacement  - 8.5 Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 4,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - 8.5 Glass replacement",
+          "count": 3
+        },
+        {
+          "name": "8.5 Glass replacement",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_592193fde98e4997bef2a41012480e6c",
+      "name": "Glass replacement  - Arch Glass R16",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Glass replacement  - Arch Glass R16",
+          "count": 2
+        },
+        {
+          "name": "Arch Glass R16",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "pbmat_e121b65c8f8347cc803bbfb5397672f1",
+      "name": "Hardware - Drip Guard",
+      "kind": "materials",
+      "serviceItemType": "Pricebook::Material",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 6,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 3
+      },
+      "namesObserved": [
+        {
+          "name": "Hardware - Drip Guard",
+          "count": 2
+        },
+        {
+          "name": "Hardware - Stop Strip",
+          "count": 2
+        },
+        {
+          "name": "j mold",
+          "count": 2
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_34ecfe7d164046048c609ee97ffa247e",
+      "name": "hourly rate  - 2 man crew with truck blended",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 44,
+      "seenOn": {
+        "estimates": 30,
+        "jobs": 14
+      },
+      "namesObserved": [
+        {
+          "name": "hourly rate  - 2 man crew with truck blended",
+          "count": 26
+        },
+        {
+          "name": "2 man crew",
+          "count": 4
+        },
+        {
+          "name": "Labor",
+          "count": 4
+        },
+        {
+          "name": "Hourly rate  - 2 man crew",
+          "count": 2
+        },
+        {
+          "name": "Labor - 2 man crew",
+          "count": 2
+        },
+        {
+          "name": "2 Man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "hourly rate for install  - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "hourly rate for screen install and hardware - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "Hourly rate to install glass - 2 man crew with truck blended",
+          "count": 1
+        },
+        {
+          "name": "Labor  - 2 man crew",
+          "count": 1
+        },
+        {
+          "name": "Labor - 2 man crew with truck blended",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f57a24cfd3064e8a9ef9901e7c617dfe",
+      "name": "Labor",
+      "kind": "materials",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 2,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 0
+      },
+      "namesObserved": [
+        {
+          "name": "Labor",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - casement 101 united",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_482eeb8875cb4bb29c163ec386218afe",
+      "name": "octagon shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 6,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "octagon shower",
+          "count": 6
+        },
+        {
+          "name": "Octagon shower",
+          "count": 1
+        },
+        {
+          "name": "Octagon Shower",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_fd48fc2425d34168849b4c8985ba495f",
+      "name": "Picture Window",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 2,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Picture Window",
+          "count": 1
+        },
+        {
+          "name": "Picture Window - Obscured",
+          "count": 1
+        },
+        {
+          "name": "Picture Window - Replace & Installation",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_0113850f49d9461a99c2492f2bee6dee",
+      "name": "Picture Window 101 united",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 10,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 1
+      },
+      "namesObserved": [
+        {
+          "name": "Picture Window 101 united",
+          "count": 3
+        },
+        {
+          "name": "Picture Window 101 United",
+          "count": 3
+        },
+        {
+          "name": "Picture Window",
+          "count": 1
+        },
+        {
+          "name": "PICTURE WINDOW",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - picture window 101 united",
+          "count": 1
+        },
+        {
+          "name": "Vinyl Windows - Picture Window 101 United",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_f17c8f2646e24f71b739978bae051ac1",
+      "name": "Polished Shower Glass",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 3,
+      "seenOn": {
+        "estimates": 1,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Polished Shower Glass",
+          "count": 2
+        },
+        {
+          "name": "Door Kit low E with Grid",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_bfe4b71dfacc48b7b1b16c2beeec6da6",
+      "name": "Residential Door Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 11,
+      "seenOn": {
+        "estimates": 7,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Door Service",
+          "count": 6
+        },
+        {
+          "name": "Custom Services - Residential Door Service",
+          "count": 3
+        },
+        {
+          "name": "Custom Job",
+          "count": 1
+        },
+        {
+          "name": "Door repair",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_23e585dec0d2490986edaa1048cd9b49",
+      "name": "Residential Glass Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 23,
+      "seenOn": {
+        "estimates": 21,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Glass Service",
+          "count": 20
+        },
+        {
+          "name": "Glass replacement  - Residential Glass Service",
+          "count": 3
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_a098587a6a8b4b09a44f6bb9d6fe712f",
+      "name": "Residential Window Service",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 28,
+      "seenOn": {
+        "estimates": 24,
+        "jobs": 4
+      },
+      "namesObserved": [
+        {
+          "name": "Residential Window Service",
+          "count": 25
+        },
+        {
+          "name": "Custom Services - Residential Window Service",
+          "count": 2
+        },
+        {
+          "name": "Custom Job",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_59d82936ba8747ca94cd07c622f17f3c",
+      "name": "Service Call - In-home consult",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 8,
+      "seenOn": {
+        "estimates": 0,
+        "jobs": 8
+      },
+      "namesObserved": [
+        {
+          "name": "Service Call - In-home consult",
+          "count": 6
+        },
+        {
+          "name": "Door repair",
+          "count": 1
+        },
+        {
+          "name": "on site consult",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_8ab0a7223e024f548a9c651fdf96d8ba",
+      "name": "Service Call - Service Call",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 132,
+      "seenOn": {
+        "estimates": 58,
+        "jobs": 74
+      },
+      "namesObserved": [
+        {
+          "name": "Service Call - Service Call",
+          "count": 108
+        },
+        {
+          "name": "Service Call",
+          "count": 8
+        },
+        {
+          "name": "Service Call - Custom",
+          "count": 3
+        },
+        {
+          "name": "Entry Door Leak Repair",
+          "count": 2
+        },
+        {
+          "name": "Entry Door Sidelight Replacement",
+          "count": 2
+        },
+        {
+          "name": "Service Call - Wine Lounge Mirror / Shower Door",
+          "count": 2
+        },
+        {
+          "name": "Multi Picture Windows",
+          "count": 1
+        },
+        {
+          "name": "Remove Shower Glass",
+          "count": 1
+        },
+        {
+          "name": "Service Call - Shower Door",
+          "count": 1
+        },
+        {
+          "name": "Service Call - Window Balancers",
+          "count": 1
+        },
+        {
+          "name": "Service Call -CUSTOM APPOINTMENT",
+          "count": 1
+        },
+        {
+          "name": "SLIDING SHOWER",
+          "count": 1
+        },
+        {
+          "name": "Window Replacement-Custom",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_873f85d9ddf14f14ba51d3fe31a77552",
+      "name": "Shower Glass - 4084 straight shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 14,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 5
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Glass - 4084 straight shower",
+          "count": 6
+        },
+        {
+          "name": "4084 straight shower",
+          "count": 4
+        },
+        {
+          "name": "Double Door Shower",
+          "count": 2
+        },
+        {
+          "name": "4084 straight shower door",
+          "count": 1
+        },
+        {
+          "name": "Service Call",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_93b727ee60e44b779777d7e92a020b84",
+      "name": "Shower Glass - 90 Angles Right Shower",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 15,
+      "seenOn": {
+        "estimates": 9,
+        "jobs": 6
+      },
+      "namesObserved": [
+        {
+          "name": "Shower Glass - 90 Angles Right Shower",
+          "count": 8
+        },
+        {
+          "name": "90 Angles Right Shower",
+          "count": 4
+        },
+        {
+          "name": "Custom Shower Installation",
+          "count": 2
+        },
+        {
+          "name": "Shower Glass - 90 Angles Left Shower",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    },
+    {
+      "serviceItemId": "olit_2965960c714e4123b1182b96c7fa8a41",
+      "name": "Vinyl Windows - SH 101 united",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": null,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 5,
+      "seenOn": {
+        "estimates": 3,
+        "jobs": 2
+      },
+      "namesObserved": [
+        {
+          "name": "Vinyl Windows - SH 101 united",
+          "count": 2
+        },
+        {
+          "name": "Double sider",
+          "count": 1
+        },
+        {
+          "name": "Materials",
+          "count": 1
+        },
+        {
+          "name": "SH 101 united",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": false
+    }
+  ],
+  "bandConflicts": [
+    {
+      "serviceItemId": "olit_a4b448846397478c822a3d8f06dbf838",
+      "name": "7 SQ FT Glass replacement",
+      "kind": "labor",
+      "serviceItemType": "OrganizationalLineItemTemplate",
+      "unitOfMeasure": null,
+      "squareFootageBand": 7,
+      "unconfirmedBandGuess": null,
+      "timesSeen": 235,
+      "seenOn": {
+        "estimates": 121,
+        "jobs": 114
+      },
+      "namesObserved": [
+        {
+          "name": "7 SQ FT Glass replacement",
+          "count": 92
+        },
+        {
+          "name": "Glass replacement  - 7 SQ FT Glass replacement",
+          "count": 66
+        },
+        {
+          "name": "7 SqFt Residential Glass replacement",
+          "count": 31
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement",
+          "count": 23
+        },
+        {
+          "name": "Residential Glass - 7 SqFt Residential Glass replacement",
+          "count": 11
+        },
+        {
+          "name": "Residential Glass replacement",
+          "count": 2
+        },
+        {
+          "name": "7 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Custom Window Supply and Install",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 18 SqFt Residential Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 25 SQ FT Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 3 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 7 Glass replacement (INSTALL ONLY)",
+          "count": 1
+        },
+        {
+          "name": "Glass replacement  - 8 Glass replacement",
+          "count": 1
+        },
+        {
+          "name": "mirrors",
+          "count": 1
+        },
+        {
+          "name": "Window Glass Replacement",
+          "count": 1
+        },
+        {
+          "name": "WINDOW REPLACEMENT",
+          "count": 1
+        }
+      ],
+      "namesDisagreeOnBand": true
+    }
+  ]
+}

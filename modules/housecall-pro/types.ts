@@ -33,12 +33,36 @@ export interface HousecallProCreateCustomerRequest {
   addresses: HousecallProAddress[];
 }
 
+export type HousecallProLineItemKind =
+  "labor" | "materials" | "discount" | "percent discount" | "tax";
+
 export interface HousecallProEstimateLineItem {
-  service_item_id?: string;
+  id?: string | null;
+  service_item_id?: string | null;
+  service_item_type?: string | null;
   name: string;
-  description?: string;
+  description?: string | null;
   quantity: number;
-  kind: "labor" | "materials" | "service" | "discount";
+  kind?: HousecallProLineItemKind | string | null;
+  unit_of_measure?: string | null;
+  order_index?: number | null;
+  taxable?: boolean | null;
+}
+
+export interface HousecallProEstimateOption {
+  id: string;
+  name?: string | null;
+  option_number?: number | null;
+  status?: string | null;
+  approval_status?: string | null;
+  message_from_pro?: string | null;
+  notes?: string | null;
+}
+
+export interface HousecallProCreateEstimateOption {
+  name: string;
+  message_from_pro?: string;
+  line_items: HousecallProEstimateLineItem[];
 }
 
 export interface HousecallProCreateEstimateRequest {
@@ -50,7 +74,8 @@ export interface HousecallProCreateEstimateRequest {
     arrival_window?: number;
   };
   assigned_employee_ids?: string[];
-  line_items: HousecallProEstimateLineItem[];
+  lead_source?: string;
+  options: HousecallProCreateEstimateOption[];
   note?: string;
   job_fields?: Record<string, unknown>;
 }
@@ -60,10 +85,19 @@ export interface HousecallProEstimate {
   estimate_number?: string | null;
   work_status?: string | null;
   customer?: HousecallProCustomer | null;
-  total_amount?: number | null;
+  options?: HousecallProEstimateOption[] | null;
 }
 
-export interface HousecallProAttachmentResponse {
-  id: string;
+export interface HousecallProPagedResponse<T> {
+  page?: number | null;
+  page_size?: number | null;
+  total_pages?: number | null;
+  total_items?: number | null;
+  line_items?: T[] | null;
+}
+
+export interface HousecallProCursorResponse<T> {
+  object?: string | null;
+  data?: T[] | null;
   url?: string | null;
 }

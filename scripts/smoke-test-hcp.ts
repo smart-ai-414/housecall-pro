@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import { config as loadEnv } from "dotenv";
 
@@ -19,6 +19,7 @@ function argValue(flag: string, fallback: string): string {
 const WRITES_ENABLED = process.argv.includes("--write");
 const DISCOVER_ONLY = process.argv.includes("--discover");
 const EXISTING_ESTIMATE_ID = argValue("--estimate-id", "");
+const REUSE_CUSTOMER_ID = argValue("--customer-id", "");
 const CATALOGUE_OUTPUT_PATH = argValue("--out", "catalogue-export.json");
 const CREATED_RECORDS_PATH = argValue(
   "--created",
@@ -100,7 +101,67 @@ interface CatalogueEntry {
 }
 
 let failures = 0;
-const createdRecords: { kind: string; id: string; path: string }[] = [];
+
+interface CreatedRecord {
+  kind: string;
+  id: string;
+  path: string;
+}
+
+const createdThisRun: CreatedRecord[] = [];
+
+function readExistingManifest(): CreatedRecord[] {
+  if (!existsSync(CREATED_RECORDS_PATH)) return [];
+
+  try {
+    const parsed = JSON.parse(readFileSync(CREATED_RECORDS_PATH, "utf8")) as {
+      createdRecords?: unknown;
+    };
+
+    if (!Array.isArray(parsed.createdRecords)) return [];
+
+    return parsed.createdRecords.filter(
+      (record): record is CreatedRecord =>
+        typeof record === "object" &&
+        record !== null &&
+        typeof (record as CreatedRecord).id === "string" &&
+        typeof (record as CreatedRecord).path === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+const carriedOverRecords = readExistingManifest();
+
+function outstandingRecords(): CreatedRecord[] {
+  const byId = new Map<string, CreatedRecord>();
+  for (const record of [...carriedOverRecords, ...createdThisRun]) {
+    byId.set(record.id, record);
+  }
+  return [...byId.values()];
+}
+
+function persistManifest(): void {
+  writeFileSync(
+    CREATED_RECORDS_PATH,
+    `${JSON.stringify(
+      {
+        createdAt: new Date().toISOString(),
+        note: "Every record here still exists in the live account. Customers cannot be deleted through the API — remove those in the Housecall Pro UI.",
+        createdRecords: outstandingRecords(),
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+}
+
+function recordCreated(kind: string, id: string, path: string): void {
+  createdThisRun.push({ kind, id, path });
+  persistManifest();
+}
 
 function heading(text: string): void {
   console.log("");
@@ -166,12 +227,16 @@ async function discoverResources(): Promise<void> {
   for (const path of DISCOVERY_PATHS) {
     const result = await call("GET", path);
     const shape = result.ok ? describeEnvelope(result.body) : "";
-    console.log(`  ${path.padEnd(30)} ${String(result.status).padEnd(7)} ${shape}`);
+    console.log(
+      `  ${path.padEnd(30)} ${String(result.status).padEnd(7)} ${shape}`,
+    );
   }
 
   console.log("");
   console.log("  Anything returning 200 is reachable with this key.");
-  console.log("  404 means the path is wrong; 403 means the plan tier blocks it.");
+  console.log(
+    "  404 means the path is wrong; 403 means the plan tier blocks it.",
+  );
 }
 
 async function resolveWorkingPath(
@@ -357,10 +422,51 @@ async function testReadCustomers(): Promise<string | null> {
   return resolved.path;
 }
 
+async function testReuseCustomer(
+  customersPath: string,
+  customerId: string,
+): Promise<string | null> {
+  heading("Test 3 — reuse an existing test customer");
+  console.log("  The API cannot delete customers, so every run reuses one.");
+  console.log("");
+
+  const result = await call("GET", `${customersPath}/${customerId}`);
+
+  if (!result.ok) {
+    report("customer found", false, `status ${result.status}`);
+    return null;
+  }
+
+  const record = (result.body ?? {}) as Record<string, unknown>;
+  const firstName = readString(record, "first_name");
+  const carriesPrefix = firstName.startsWith(TEST_RECORD_PREFIX);
+
+  report(
+    "customer found",
+    true,
+    `${firstName} ${readString(record, "last_name")}`,
+  );
+  report(
+    `customer is a ${TEST_RECORD_PREFIX} record`,
+    carriesPrefix,
+    carriesPrefix ? "" : "REFUSING — this looks like a real customer",
+  );
+
+  if (!carriesPrefix) return null;
+
+  return customerId;
+}
+
 async function testCreateCustomer(
   customersPath: string,
 ): Promise<string | null> {
   heading("Test 3 — create a test customer");
+  console.log(
+    `  NOTE: the API cannot delete customers. This one is permanent until`,
+  );
+  console.log("  someone removes it in the Housecall Pro UI. Prefer");
+  console.log("  --customer-id=<existing> on repeat runs.");
+  console.log("");
 
   const result = await call("POST", customersPath, {
     first_name: `${TEST_RECORD_PREFIX} Smoke`,
@@ -390,7 +496,7 @@ async function testCreateCustomer(
     return null;
   }
 
-  createdRecords.push({ kind: "customer", id, path: customersPath });
+  recordCreated("customer", id, customersPath);
   console.log(`      customer id: ${id}`);
 
   return id;
@@ -402,16 +508,25 @@ async function testCreateEstimate(
 ): Promise<string | null> {
   heading("Test 4 — create an unsent draft estimate");
 
+  const note = `${TEST_RECORD_PREFIX} Created by scripts/smoke-test-hcp.ts. Safe to delete.`;
+
   const result = await call("POST", estimatesPath, {
     customer_id: customerId,
-    line_items: [
+    note,
+    options: [
       {
-        name: `${TEST_RECORD_PREFIX} Placeholder — smoke test`,
-        quantity: 1,
-        kind: "service",
+        name: `${TEST_RECORD_PREFIX} Option 1`,
+        message_from_pro: note,
+        line_items: [
+          {
+            name: `${TEST_RECORD_PREFIX} Placeholder — smoke test`,
+            quantity: 1,
+            kind: "labor",
+            order_index: 0,
+          },
+        ],
       },
     ],
-    note: `${TEST_RECORD_PREFIX} Created by scripts/smoke-test-hcp.ts. Safe to delete.`,
   });
 
   const id =
@@ -426,7 +541,7 @@ async function testCreateEstimate(
     return null;
   }
 
-  createdRecords.push({ kind: "estimate", id, path: estimatesPath });
+  recordCreated("estimate", id, estimatesPath);
 
   const workStatus =
     typeof result.body === "object" && result.body !== null
@@ -463,20 +578,27 @@ async function testAttachPhoto(
 
   if (result.ok) {
     report("photo attachment supported", true, `status ${result.status}`);
+    console.log("");
     console.log(
-      "      Attachment is the primary path. Wire uploadAttachment in the sync service.",
+      "      This CONTRADICTS the 12 Sep 2026 probe, which saw 404 here.",
     );
+    console.log(
+      "      Attachments would become the primary path and docs/ARCHITECTURE.md",
+    );
+    console.log("      would need revisiting.");
     return;
   }
 
-  report("photo attachment supported", false, `status ${result.status}`);
-  console.log(`      response: ${result.rawText.slice(0, 400)}`);
-  console.log("");
-  console.log(
-    "      Attachment is NOT available. Signed links in the notes become the",
+  report(
+    "photo attachment unavailable, as expected",
+    result.status === 404,
+    `status ${result.status}`,
   );
   console.log(
-    "      primary path, which makes the link-durability fix mandatory.",
+    "      Signed links in the estimate notes are the only path. PUBLIC_APP_URL",
+  );
+  console.log(
+    "      must be set or those links expire before a reviewer opens them.",
   );
 }
 
@@ -496,24 +618,50 @@ async function testReadBackEstimate(
   }
 
   const record = (result.body ?? {}) as Record<string, unknown>;
-  const hasLineItems = Array.isArray(record["line_items"]);
-  const lineItems = extractRecords(record["line_items"], []);
+  const options = extractRecords(record["options"], ["options"]);
 
   report(
-    "line items returned on GET",
-    hasLineItems,
-    hasLineItems ? `${lineItems.length} items` : "absent from the response",
+    "options returned on GET",
+    options.length > 0,
+    `${options.length} options`,
   );
 
-  if (!hasLineItems) {
+  let lineItemCount = 0;
+
+  for (const option of options) {
+    const optionId = readString(option, "id");
+    if (optionId === "") continue;
+
+    const nested = await call(
+      "GET",
+      `${estimatesPath}/${estimateId}/options/${optionId}/line_items`,
+    );
+
+    const items = extractRecords(nested.body, ["line_items"]);
+    lineItemCount += items.length;
+
+    if (items[0]) {
+      console.log(
+        `      option ${readString(option, "option_number") || optionId}: ${items.length} line items`,
+      );
+      console.log(
+        `      line item keys: ${Object.keys(items[0]).sort().join(", ")}`,
+      );
+    }
+  }
+
+  report(
+    "line items readable under options",
+    lineItemCount > 0,
+    `${lineItemCount} across ${options.length} option(s)`,
+  );
+
+  if (lineItemCount === 0) {
     console.log("");
     console.log(
-      "      Without line items on GET, reviewer edits cannot be diffed.",
+      "      Without readable line items, reviewer edits cannot be diffed",
     );
-    console.log(
-      "      Check the webhook probe below before committing to the",
-    );
-    console.log("      Phase 2 accuracy criteria.");
+    console.log("      and the Phase 2 accuracy criteria are not measurable.");
   }
 }
 
@@ -529,7 +677,9 @@ async function probeWebhooks(): Promise<void> {
     console.log("      webhooks in the web UI, so the absence of a management");
     console.log("      endpoint says nothing about whether webhooks fire.");
     console.log("      Check Settings for a webhook or developer section, and");
-    console.log("      rely on test 6 for whether reviewer edits are readable.");
+    console.log(
+      "      rely on test 6 for whether reviewer edits are readable.",
+    );
     return;
   }
 
@@ -559,7 +709,9 @@ async function main(): Promise<void> {
   const customersPath = await testReadCustomers();
 
   if (EXISTING_ESTIMATE_ID !== "") {
-    const estimatesResolved = await resolveWorkingPath(ESTIMATE_PATH_CANDIDATES);
+    const estimatesResolved = await resolveWorkingPath(
+      ESTIMATE_PATH_CANDIDATES,
+    );
     await testReadBackEstimate(
       estimatesResolved?.path ?? ESTIMATE_PATH_CANDIDATES[0],
       EXISTING_ESTIMATE_ID,
@@ -569,10 +721,14 @@ async function main(): Promise<void> {
   if (!WRITES_ENABLED) {
     heading("Write tests skipped");
     console.log("  Nothing was created in the live account.");
-    console.log("  Re-run with --write to create a test customer and estimate.");
+    console.log(
+      "  Re-run with --write to create a test customer and estimate.",
+    );
     console.log("  Those writes land in the LIVE Housecall Pro account.");
   } else if (customersPath) {
-    const customerId = await testCreateCustomer(customersPath);
+    const customerId = REUSE_CUSTOMER_ID
+      ? await testReuseCustomer(customersPath, REUSE_CUSTOMER_ID)
+      : await testCreateCustomer(customersPath);
 
     if (customerId) {
       const estimatesResolved = await resolveWorkingPath(
@@ -591,20 +747,25 @@ async function main(): Promise<void> {
 
   await probeWebhooks();
 
-  if (createdRecords.length > 0) {
-    writeFileSync(
-      CREATED_RECORDS_PATH,
-      `${JSON.stringify({ createdAt: new Date().toISOString(), createdRecords }, null, 2)}\n`,
-      "utf8",
-    );
+  const outstanding = outstandingRecords();
 
-    heading("Records created in the live account");
-    for (const record of createdRecords) {
-      console.log(`  ${record.kind}: ${record.id}`);
+  if (outstanding.length > 0) {
+    persistManifest();
+
+    heading("Test records outstanding in the live account");
+    for (const record of outstanding) {
+      const isNew = createdThisRun.some((entry) => entry.id === record.id);
+      console.log(
+        `  ${record.kind.padEnd(9)} ${record.id}${isNew ? "  (created this run)" : ""}`,
+      );
     }
     console.log("");
+    console.log(`  Tracked in ${CREATED_RECORDS_PATH}.`);
     console.log(
-      `  Written to ${CREATED_RECORDS_PATH}. Delete these before handover.`,
+      "  npm run hcp:cleanup -- --delete removes the estimates. Customers have",
+    );
+    console.log(
+      "  no DELETE verb and must be removed in the Housecall Pro UI.",
     );
   }
 

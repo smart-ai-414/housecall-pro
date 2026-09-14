@@ -16,11 +16,18 @@ function argValue(flag: string): string | null {
 
 const USAGE = `
 Usage:
+  npm run setup:location -- --slug=cci-glass --from-company [--deactivate-seed]
+
   npm run setup:location -- --name="CCI Glass Inc." --slug=cci-glass \\
     --zips=33101,33102,33109 [--account-id=xxx] [--key=hcp_api_key] \\
     [--deactivate-seed]
 
 Options:
+  --from-company      Read the name, account id and service-area ZIP codes
+                      straight from GET /company using the API key. The
+                      account already knows its own territory, so this is
+                      preferred over transcribing a ZIP list by hand.
+                      --name and --zips override what it finds.
   --name              Display name for the franchise location
   --slug              URL-safe unique identifier
   --zips              Comma-separated service ZIP codes
@@ -46,13 +53,85 @@ function parseZipCodes(raw: string | null): string[] {
   ];
 }
 
+interface CompanyProfile {
+  name: string | null;
+  accountId: string | null;
+  zipCodes: string[];
+}
+
+async function fetchCompanyProfile(apiKey: string): Promise<CompanyProfile> {
+  const baseUrl =
+    process.env.HOUSECALL_PRO_API_BASE_URL ?? "https://api.housecallpro.com";
+
+  const response = await fetch(
+    `${baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl}/company`,
+    {
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        Accept: "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `GET /company returned ${response.status}. Check HOUSECALL_PRO_API_KEY.`,
+    );
+  }
+
+  const body = (await response.json()) as {
+    name?: unknown;
+    id?: unknown;
+    service_areas_data?: { zip_codes?: unknown } | null;
+  };
+
+  const rawZips = body.service_areas_data?.zip_codes;
+
+  return {
+    name: typeof body.name === "string" ? body.name : null,
+    accountId: typeof body.id === "string" ? body.id : null,
+    zipCodes: Array.isArray(rawZips)
+      ? [
+          ...new Set(
+            rawZips.filter((zip): zip is string => typeof zip === "string"),
+          ),
+        ]
+      : [],
+  };
+}
+
 async function main(): Promise<void> {
-  const name = argValue("--name");
   const slug = argValue("--slug");
-  const zipCodes = parseZipCodes(argValue("--zips"));
-  const housecallProAccountId = argValue("--account-id");
   const apiKey = argValue("--key") ?? process.env.HOUSECALL_PRO_API_KEY ?? "";
   const deactivateSeed = process.argv.includes("--deactivate-seed");
+  const fromCompany = process.argv.includes("--from-company");
+
+  let name = argValue("--name");
+  let zipCodes = parseZipCodes(argValue("--zips"));
+  let housecallProAccountId = argValue("--account-id");
+
+  if (fromCompany) {
+    if (apiKey === "") {
+      console.error(
+        "--from-company needs an API key. Set HOUSECALL_PRO_API_KEY",
+      );
+      console.error("in .env, or pass --key=…");
+      process.exit(1);
+    }
+
+    const profile = await fetchCompanyProfile(apiKey);
+
+    name ??= profile.name;
+    housecallProAccountId ??= profile.accountId;
+    if (zipCodes.length === 0) zipCodes = profile.zipCodes;
+
+    console.log("");
+    console.log("From GET /company:");
+    console.log(`  name:       ${profile.name ?? "(none)"}`);
+    console.log(`  account id: ${profile.accountId ?? "(none)"}`);
+    console.log(`  ZIP codes:  ${profile.zipCodes.length} in the service area`);
+    console.log("");
+  }
 
   if (!name || !slug) {
     console.error(USAGE);
@@ -62,7 +141,9 @@ async function main(): Promise<void> {
   if (zipCodes.length === 0) {
     console.error("");
     console.error("No ZIP codes given. A location with an empty territory");
-    console.error("routes nothing, so every lead would stall at NEEDS_CALLBACK.");
+    console.error(
+      "routes nothing, so every lead would stall at NEEDS_CALLBACK.",
+    );
     console.error(USAGE);
     process.exit(1);
   }
@@ -139,18 +220,24 @@ async function main(): Promise<void> {
 
       const shared = otherZips.filter((zip) => claimed.has(zip));
       if (shared.length > 0) {
-        conflicts.push(`${location.name} (${location.slug}): ${shared.join(", ")}`);
+        conflicts.push(
+          `${location.name} (${location.slug}): ${shared.join(", ")}`,
+        );
       }
     }
 
     if (conflicts.length > 0) {
       console.log("");
-      console.log("WARNING — overlapping ZIP codes with other active locations:");
+      console.log(
+        "WARNING — overlapping ZIP codes with other active locations:",
+      );
       for (const conflict of conflicts) {
         console.log(`  ${conflict}`);
       }
       console.log("");
-      console.log("Territory routing treats an overlap as AMBIGUOUS_TERRITORY and");
+      console.log(
+        "Territory routing treats an overlap as AMBIGUOUS_TERRITORY and",
+      );
       console.log("holds the job for a human rather than guessing a location.");
     }
 
@@ -171,7 +258,9 @@ async function main(): Promise<void> {
     }
 
     console.log("");
-    console.log("Verify at /dashboard/locations before running an intake session.");
+    console.log(
+      "Verify at /dashboard/locations before running an intake session.",
+    );
   } finally {
     await prisma.$disconnect();
   }

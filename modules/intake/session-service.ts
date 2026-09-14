@@ -26,6 +26,8 @@ import {
   QUESTION_BANK,
 } from "@/modules/intake/question-bank";
 import { recordSessionEvent } from "@/modules/intake/session-events";
+import { assessSessionCompleteness } from "@/modules/intake/completion";
+import { syncSessionToHousecallPro } from "@/modules/estimates/estimate-sync-service";
 import { shouldMarkAsTestRecord } from "@/modules/housecall-pro/test-guard";
 import {
   isPhotoUploadAvailable,
@@ -109,6 +111,7 @@ export async function startIntakeSession({
     outstandingQuestions: session.outstandingQuestions,
     locationName: null,
     photoUploadAvailable: isPhotoUploadAvailable(),
+    isComplete: false,
   };
 }
 
@@ -215,7 +218,12 @@ export async function recordCustomerMessage({
       createMessage("customer", message),
       createMessage("assistant", acknowledgement),
     ),
-    answeredNow ? { answeredQuestionIds: [answeredNow] } : {},
+    answeredNow
+      ? {
+          answeredQuestionIds: [answeredNow],
+          answers: { [answeredNow]: message },
+        }
+      : {},
   );
 
   await persistState({
@@ -231,15 +239,18 @@ export async function recordCustomerMessage({
     outstandingQuestions: remainingQuestions.length,
   });
 
+  const completion = await syncIfIntakeComplete(sessionId);
+
   return {
     sessionId,
     resumeToken,
-    status: session.status,
+    status: completion.status ?? session.status,
     transcript: visibleTranscript(nextState),
     outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
     locationName: session.locationName,
     photoUploadAvailable: isPhotoUploadAvailable(),
+    isComplete: completion.isComplete,
   };
 }
 
@@ -317,15 +328,20 @@ export async function recordContactDetails({
     locationId: routedLocationId,
   });
 
+  const completion = await syncIfIntakeComplete(sessionId);
+
   return {
     sessionId,
     resumeToken,
-    status: routedLocationId ? session.status : "NEEDS_CALLBACK",
+    status:
+      completion.status ??
+      (routedLocationId ? session.status : "NEEDS_CALLBACK"),
     transcript: visibleTranscript(nextState),
     outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
     locationName: routedLocation?.name ?? null,
     photoUploadAvailable: isPhotoUploadAvailable(),
+    isComplete: completion.isComplete,
     routingNote,
   };
 }
@@ -366,16 +382,55 @@ export async function recordPhotoReceived({
     stillOutstanding: outstandingPhotoTypes.length,
   });
 
+  const completion = await syncIfIntakeComplete(sessionId);
+
   return {
     sessionId,
     resumeToken,
-    status,
+    status: completion.status ?? status,
     transcript: visibleTranscript(nextState),
     outstandingPhotoTypes,
     outstandingQuestions: session.outstandingQuestions,
     locationName: session.locationName,
     photoUploadAvailable: isPhotoUploadAvailable(),
+    isComplete: completion.isComplete,
   };
+}
+
+interface CompletionAttempt {
+  isComplete: boolean;
+  status: SessionStatus | null;
+}
+
+async function syncIfIntakeComplete(
+  sessionId: string,
+): Promise<CompletionAttempt> {
+  const { isComplete } = await assessSessionCompleteness(sessionId);
+
+  if (!isComplete) return { isComplete: false, status: null };
+
+  const existing = await prisma.estimate.findUnique({
+    where: { sessionId },
+    select: { housecallProEstimateId: true, status: true },
+  });
+
+  if (existing?.housecallProEstimateId) {
+    return { isComplete: true, status: "SYNCED" };
+  }
+
+  if (existing?.status === "SYNC_FAILED") {
+    return { isComplete: true, status: null };
+  }
+
+  const outcome = await syncSessionToHousecallPro({
+    sessionId,
+    reason: "COMPLETED_INTAKE",
+  });
+
+  const synced =
+    outcome.status === "SYNCED" || outcome.status === "ALREADY_SYNCED";
+
+  return { isComplete: true, status: synced ? "SYNCED" : null };
 }
 
 async function outstandingPhotoTypesFor(

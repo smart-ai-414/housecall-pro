@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BRAND } from "@/core/config/branding";
 import { cn } from "@/core/utils/cn";
 import { ChatTranscript } from "@/modules/intake/components/ChatWidget/ChatTranscript";
+import { CompletionNotice } from "@/modules/intake/components/ChatWidget/CompletionNotice";
 import { ContactDetailsForm } from "@/modules/intake/components/ChatWidget/ContactDetailsForm";
 import {
   PhotoCompleteNotice,
@@ -53,7 +54,8 @@ export function EstimateChatWidget({
 
   const session = intake.session;
   const needsContactDetails =
-    session !== null && session.outstandingQuestions.includes("CONTACT_DETAILS");
+    session !== null &&
+    session.outstandingQuestions.includes("CONTACT_DETAILS");
 
   if (!isOpen) {
     return (
@@ -137,7 +139,9 @@ export function EstimateChatWidget({
           />
 
           <div className="border-border-subtle bg-surface-muted space-y-2 border-t px-4 py-3">
-            {needsContactDetails ? (
+            {session.isComplete ? (
+              <CompletionNotice locationName={session.locationName} />
+            ) : needsContactDetails ? (
               <ContactDetailsForm
                 isSubmitting={intake.isSending}
                 onSubmit={(contactDraft) =>

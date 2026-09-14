@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
+
 import { config as loadEnv } from "dotenv";
 
 loadEnv({ path: ".env", quiet: true });
@@ -11,6 +13,7 @@ import { createHousecallProClient } from "../modules/housecall-pro/client";
 
 const DELETE_ENABLED = process.argv.includes("--delete");
 const PURGE_LOCAL = process.argv.includes("--purge-local");
+const SMOKE_TEST_MANIFEST = "smoke-test-created-records.json";
 
 interface RemoteRecord {
   kind: "estimate" | "customer";
@@ -24,6 +27,108 @@ function heading(text: string): void {
   console.log("");
   console.log(text);
   console.log("-".repeat(text.length));
+}
+
+interface SmokeTestRecord {
+  kind: string;
+  id: string;
+  path: string;
+}
+
+function readSmokeTestManifest(): SmokeTestRecord[] {
+  if (!existsSync(SMOKE_TEST_MANIFEST)) return [];
+
+  try {
+    const parsed = JSON.parse(readFileSync(SMOKE_TEST_MANIFEST, "utf8")) as {
+      createdRecords?: unknown;
+    };
+
+    if (!Array.isArray(parsed.createdRecords)) return [];
+
+    return parsed.createdRecords.filter(
+      (record): record is SmokeTestRecord =>
+        typeof record === "object" &&
+        record !== null &&
+        typeof (record as SmokeTestRecord).id === "string" &&
+        typeof (record as SmokeTestRecord).path === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+async function deleteSmokeTestRecords(
+  records: readonly SmokeTestRecord[],
+): Promise<void> {
+  const apiKey = process.env.HOUSECALL_PRO_API_KEY ?? "";
+
+  heading("Records created by the smoke test");
+
+  if (records.length === 0) {
+    console.log(`  None. No ${SMOKE_TEST_MANIFEST} on disk.`);
+    return;
+  }
+
+  for (const record of records) {
+    console.log(`  ${record.kind.padEnd(9)} ${record.id}`);
+  }
+
+  if (!DELETE_ENABLED) return;
+
+  if (apiKey === "") {
+    console.log("");
+    console.log("  HOUSECALL_PRO_API_KEY is not set, so these cannot be");
+    console.log("  deleted here. Remove them by hand in Housecall Pro.");
+    return;
+  }
+
+  console.log("");
+
+  const client = createHousecallProClient(apiKey);
+  const estimatesFirst = [...records].sort((left, right) =>
+    left.kind === "estimate" ? -1 : right.kind === "estimate" ? 1 : 0,
+  );
+
+  let remaining = 0;
+
+  for (const record of estimatesFirst) {
+    if (record.kind === "customer") {
+      remaining += 1;
+      console.log(`  MANUAL  customer ${record.id}`);
+      console.log(
+        "          The API has no DELETE for customers. Remove in the UI.",
+      );
+      continue;
+    }
+
+    try {
+      await client.request({
+        method: "DELETE",
+        path: `${record.path}/${record.id}`,
+        attemptLimit: 1,
+      });
+      console.log(`  deleted ${record.kind} ${record.id}`);
+    } catch (error) {
+      remaining += 1;
+      console.log(
+        `  FAILED  ${record.kind} ${record.id} — ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+      console.log("          delete this one by hand in Housecall Pro");
+    }
+  }
+
+  if (remaining === 0) {
+    unlinkSync(SMOKE_TEST_MANIFEST);
+    console.log(`  ${SMOKE_TEST_MANIFEST} removed`);
+    return;
+  }
+
+  console.log("");
+  console.log(
+    `  ${SMOKE_TEST_MANIFEST} kept — ${remaining} record(s) still in the account.`,
+  );
 }
 
 async function main(): Promise<void> {
@@ -126,6 +231,9 @@ async function main(): Promise<void> {
       }
     }
 
+    const smokeTestRecords = readSmokeTestManifest();
+    await deleteSmokeTestRecords(smokeTestRecords);
+
     if (!DELETE_ENABLED) {
       heading("Dry run");
       console.log("  Nothing was deleted.");
@@ -152,10 +260,16 @@ async function main(): Promise<void> {
       if (!apiKey) continue;
 
       const client = createHousecallProClient(apiKey);
-      const path =
-        record.kind === "estimate"
-          ? `estimates/${record.housecallProId}`
-          : `customers/${record.housecallProId}`;
+      if (record.kind === "customer") {
+        console.log(`  MANUAL  customer ${record.housecallProId}`);
+        console.log(
+          "          The API has no DELETE for customers. Remove in the UI.",
+        );
+        failed += 1;
+        continue;
+      }
+
+      const path = `estimates/${record.housecallProId}`;
 
       try {
         await client.request({ method: "DELETE", path, attemptLimit: 1 });

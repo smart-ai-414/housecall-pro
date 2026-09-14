@@ -24,6 +24,7 @@ export const collectedDetailsSchema = z.object({
   email: z.string().nullable().default(null),
   serviceAddress: z.string().nullable().default(null),
   answeredQuestionIds: z.array(z.string()).default([]),
+  answers: z.record(z.string(), z.string()).default({}),
 });
 
 export type CollectedDetails = z.infer<typeof collectedDetailsSchema>;
@@ -37,6 +38,7 @@ export const conversationStateSchema = z.object({
     email: null,
     serviceAddress: null,
     answeredQuestionIds: [],
+    answers: {},
   }),
 });
 
@@ -51,6 +53,7 @@ export const EMPTY_CONVERSATION_STATE: ConversationState = {
     email: null,
     serviceAddress: null,
     answeredQuestionIds: [],
+    answers: {},
   },
 };
 
@@ -96,6 +99,7 @@ export function mergeCollectedDetails(
           ...(patch.answeredQuestionIds ?? []),
         ]),
       ],
+      answers: { ...state.collected.answers, ...(patch.answers ?? {}) },
     },
   };
 }

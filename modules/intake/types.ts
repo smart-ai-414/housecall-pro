@@ -16,6 +16,7 @@ export interface IntakeSessionView {
   outstandingQuestions: string[];
   locationName: string | null;
   photoUploadAvailable: boolean;
+  isComplete: boolean;
 }
 
 export interface IntakeSessionWithRouting extends IntakeSessionView {
