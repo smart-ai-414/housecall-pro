@@ -727,8 +727,94 @@ changes**. `PERCEPTION_PROVIDER` sets them all; `PERCEPTION_PROVIDER_DIMENSIONS`
 and its siblings override one at a time, so the plan's "escalate spatial
 reasoning to a stronger model" is an env change rather than a deploy.
 
-Gemini is the default and the only registered provider today, per the plan and
-the client's existing key.
+Gemini is the default, per the plan and the client's existing key. Anthropic is
+registered alongside it, so the plan's "switch providers with an environment
+variable, not a code change" is literally true rather than aspirational — and so
+Phase 2 can compare the two on the same photographs.
+
+**Gemini is geo-blocked from this development machine.** `npm run perception:probe`
+answers `400 FAILED_PRECONDITION — User location is not supported for the API use`,
+which is a location restriction on the consumer Generative Language API, not a bad
+key. Perception therefore cannot run locally on Gemini; either set
+`ANTHROPIC_API_KEY` and route to Anthropic, or run the probe again from the
+production host, which may sit in a supported region. The probe exists precisely
+so this is a five-second question rather than a debugging session.
+
+### Provenance travels with the answer
+
+A provider returns a `PerceptionObservation`: the parsed value, the raw model
+output, and the model id that produced it. `classifications.raw_model_output` and
+`classifications.model_version` are `NOT NULL` for a reason — a run has to be
+replayable when a prompt or a model changes — and a provider that returned only
+the parsed value could not fill them honestly. The model id is recorded as
+`provider:model`, so a mixed-provider deployment stays legible in the accuracy
+report.
+
+### The pipeline runs on its own request
+
+`perception-pipeline.ts` loads every photograph for the session, sends them in a
+single call per question, and writes the rows. It is driven by
+`POST /api/intake/analyze` rather than by the photo upload itself: three model
+calls against a 30-second timeout do not belong inside the request that confirms
+an upload, and the customer should see "Looking at your photos…" rather than a
+spinner on the upload button.
+
+Every call is paid and the intake endpoint is public, so a session gets
+`PERCEPTION_MAX_RUNS_PER_SESSION` runs in total — enough for the first two
+photographs plus a re-read after a conditional close-up, and no more.
+`perceptionIsPending` compares the newest photograph against the newest
+classification, so a third photograph triggers exactly one re-read and a page
+refresh triggers none.
+
+### Confidence routing
+
+`pricing-gate.ts` is the branch the plan calls for: below
+`PERCEPTION_CONFIDENCE_THRESHOLD`, or an `UNKNOWN` asset or issue type, or
+`UNUSABLE` photographs, and the session is flagged `should_bypass_pricing`. The
+sync still fires — the lead still reaches Housecall Pro — but the notes open with
+`LOW CONFIDENCE — pricing bypassed, manual review required` and no catalogue
+matching will be attempted when Phase 3 adds it.
+
+The threshold starts at 0.6 and is an environment variable rather than a
+constant, because the number that belongs there is the one the calibration data
+produces, and changing it should not need a deploy.
+
+### The conditional third photograph
+
+Two photographs are asked for up front; the third is asked for only when the
+photo-quality call says the frame or glass type cannot be read without it, and
+the request says why. Three mandatory photographs cost completions; one explained
+request mid-conversation costs very little.
+
+`sessions.requested_photo_types` and `sessions.declined_photo_types` carry that
+decision, and `outstandingPhotoTypesFor` derives what is still needed from
+required, requested, received and declined. The customer can always decline, and
+declining closes the requirement — a photograph nobody can take must not strand
+the lead.
+
+### Customer confirmation of dimensions
+
+The estimate is read back as a question with confirm, correct and unsure
+choices. A free-text message cannot answer it: `DIMENSION_CONFIRMATION` is in
+`QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT`, because a stray "ok" recorded as
+confirmation of a measurement is exactly the silent use the plan forbids. A
+correction is stored in `customer_corrected_width` and `customer_corrected_height`
+and is what the notes and the accuracy report read; the model's own numbers are
+kept beside it as the thing being scored.
+
+## Shadow mode and calibration
+
+Phase 2 runs every result past a person regardless of confidence. `reviewer_edits`
+records what the assistant said and what the reviewer changed it to, written from
+the correction form on the estimates queue; `original_value` is read from the
+stored classification at the moment of the edit rather than typed again.
+
+`npm run accuracy` turns that into the numbers Phase 3 needs: asset-type and
+issue-type accuracy, dimension accuracy **by price band** rather than by inch
+(`price-bands.ts`), and accuracy bucketed by the confidence the model reported.
+That last table is the one that sets the real threshold. The report says plainly
+when there is not yet enough data, because a threshold derived from four
+submissions is worse than the provisional one.
 
 **There is no `matchCatalogue` method, and that is deliberate.** The plan lists
 one in 5.1 but its own Phase 3 section says catalogue matching is "purely
@@ -839,25 +925,39 @@ looks to the caller like success.
 
 ## Phases
 
-Phase 1 (foundation) and Phase 2 (integration) are built, along with the
-public intake routes (`/estimate`, `/estimate/resume/[token]`), durable photo
-links and the session event log. Still to come:
+The numbering follows the implementation plan, in which perception is Phase 2 and
+pricing is Phase 3. Phase 1 (foundation and Housecall Pro integration) is built,
+along with the public intake routes (`/estimate`, `/estimate/resume/[token]`),
+durable photo links and the session event log.
 
-- **Phase 3, perception** — Claude Vision fills `classifications` and
-  `dimension_estimates`, with confidence routing. `is_low_confidence` is written
-  at insert time so the review queue can filter on an indexed column instead of
-  re-deriving a threshold on every read. `raw_model_output` is kept verbatim so a
-  run can be replayed when a prompt or model version changes.
-- **Phase 4, pricing** — catalogue matching against the price book. Gap analysis
+Phase 2 (perception) is built: classification, dimension estimation with a ranked
+scale reference, photo-quality assessment and the conditional close-up,
+confidence routing that turns a poor photograph into a callback lead rather than
+a confident wrong answer, customer confirmation of dimensions, and the reviewer
+correction log behind `npm run accuracy`.
+
+Two of its exit criteria are operational rather than buildable and remain open:
+
+- **At least 30 real submissions with reviewer corrections logged**, and the
+  accuracy numbers that follow from them. The instrumentation is in place; the
+  submissions are not.
+- **Whether Gemini is reachable from production.** It is not reachable from this
+  development machine — see the perception layer section above.
+
+Still to come:
+
+- **Phase 3, pricing** — catalogue matching against the price book, reading the
+  classification and the confirmed dimensions that Phase 2 now produces, and
+  honouring `should_bypass_pricing` rather than matching anyway. Gap analysis
   must use a deterministic rules table, not model judgement: auditable,
   testable, and it will not drift when a model updates. The unpriceable-job path
   sets `needs_reviewer_completion` and still syncs, rather than force-fitting the
   nearest wrong item.
-- **Phase 5, conversation** — adaptive questioning capped at four questions,
-  customer confirmation of dimensions, and multi-opening decomposition. The
-  schema already supports the last one: a multi-opening job charges the service
-  call and travel once (`is_base_item`) then labour and materials per opening
-  (`is_additional_opening`, grouped by `opening_index`).
+- **Phase 4, conversation** — adaptive questioning within the four-question cap
+  and multi-opening decomposition. The schema already supports the latter: a
+  multi-opening job charges the service call and travel once (`is_base_item`)
+  then labour and materials per opening (`is_additional_opening`, grouped by
+  `opening_index`).
 
 ## Verified behaviour
 
@@ -872,3 +972,12 @@ images and real crypto:
 - AES-256-GCM round-trip, ciphertext tamper detection, and secret masking
 - resume tokens rejecting truncation, mutation and session repointing
 - ZIP extraction and point-in-polygon territory matching
+- perception provenance: the model id and raw output survive the service layer,
+  so the columns that make a run replayable can actually be filled
+- confidence routing in every direction it can fire: low confidence, unknown
+  asset type, unusable photographs, and a classification that never arrived
+- price bands, including that a one-inch error does not move the band — the
+  precision the plan actually asks for
+- the conditional third photograph: two required up front, a close-up added only
+  when requested, and a declined close-up closing the requirement rather than
+  stranding the lead

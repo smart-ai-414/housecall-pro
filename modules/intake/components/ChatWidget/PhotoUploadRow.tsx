@@ -1,15 +1,10 @@
 "use client";
 
-import { Camera, Check, Loader2 } from "lucide-react";
+import { Camera, Check, Loader2, Sparkles } from "lucide-react";
 import { useRef } from "react";
 
 import type { PhotoType } from "@/generated/prisma/enums";
-
-const PHOTO_LABELS: Record<PhotoType, string> = {
-  INTERIOR_FLOOR_TO_CEILING: "Inside, floor to ceiling",
-  EXTERIOR_FULL_ELEVATION: "Outside, the whole wall",
-  CORNER_CLOSEUP: "Close-up of a corner",
-};
+import { PHOTO_TYPE_GUIDANCE } from "@/modules/photos/photo-requirements";
 
 const ACCEPT_ATTRIBUTE =
   "image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif";
@@ -18,19 +13,33 @@ export function PhotoUploadRow({
   photoType,
   isUploading,
   isDisabled,
+  isOptional = false,
   onSelect,
+  onDecline,
 }: {
   photoType: PhotoType;
   isUploading: boolean;
   isDisabled: boolean;
+  isOptional?: boolean;
   onSelect: (file: File) => void;
+  onDecline?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="ring-border-subtle flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 ring-1">
       <span className="text-sm font-medium text-slate-800">
-        {PHOTO_LABELS[photoType]}
+        {PHOTO_TYPE_GUIDANCE[photoType].label}
+        {isOptional && onDecline ? (
+          <button
+            type="button"
+            disabled={isDisabled}
+            onClick={onDecline}
+            className="mt-0.5 block text-xs font-normal text-slate-500 underline"
+          >
+            I cannot get this one
+          </button>
+        ) : null}
       </span>
 
       <input
@@ -73,6 +82,15 @@ export function PhotoCompleteNotice() {
     <p className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2.5 text-sm text-green-900 ring-1 ring-green-200 ring-inset">
       <Check className="size-4" aria-hidden="true" />
       Both photos received.
+    </p>
+  );
+}
+
+export function PerceptionRunningNotice() {
+  return (
+    <p className="text-brand-900 ring-brand-200 bg-brand-50 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm ring-1 ring-inset">
+      <Sparkles className="size-4 animate-pulse" aria-hidden="true" />
+      Looking at your photos…
     </p>
   );
 }

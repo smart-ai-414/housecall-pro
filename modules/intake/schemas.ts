@@ -69,6 +69,52 @@ export const photoConfirmSchema = z.object({
   storageKey: z.string().min(8).max(400),
 });
 
+export const sessionCredentialsSchema = z.object({
+  sessionId: z.uuid(),
+  resumeToken: z.string().min(16),
+});
+
+const MAX_OPENING_INCHES = 400;
+
+export const dimensionConfirmationSchema = z
+  .object({
+    sessionId: z.uuid(),
+    resumeToken: z.string().min(16),
+    response: z.enum(["CONFIRMED", "CORRECTED", "UNSURE"]),
+    widthInches: z
+      .number()
+      .positive("Give a width greater than zero")
+      .max(MAX_OPENING_INCHES)
+      .nullable()
+      .default(null),
+    heightInches: z
+      .number()
+      .positive("Give a height greater than zero")
+      .max(MAX_OPENING_INCHES)
+      .nullable()
+      .default(null),
+  })
+  .refine(
+    (value) =>
+      value.response !== "CORRECTED" ||
+      (value.widthInches !== null && value.heightInches !== null),
+    {
+      message: "Give both a width and a height",
+      path: ["widthInches"],
+    },
+  );
+
+export const declinePhotoSchema = z.object({
+  sessionId: z.uuid(),
+  resumeToken: z.string().min(16),
+  photoType: z.enum(Object.values(PhotoType) as [PhotoType, ...PhotoType[]]),
+});
+
+export type SessionCredentialsInput = z.infer<typeof sessionCredentialsSchema>;
+export type DimensionConfirmationInput = z.infer<
+  typeof dimensionConfirmationSchema
+>;
+export type DeclinePhotoInput = z.infer<typeof declinePhotoSchema>;
 export type StartSessionInput = z.infer<typeof startSessionSchema>;
 export type CustomerMessageInput = z.infer<typeof customerMessageSchema>;
 export type ContactDetailsInput = z.infer<typeof contactDetailsSchema>;

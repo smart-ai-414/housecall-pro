@@ -16,6 +16,7 @@ import {
   PerceptionUnavailableError,
   type DimensionInput,
   type PerceptionInput,
+  type PerceptionObservation,
   type PerceptionPhoto,
   type PerceptionProvider,
 } from "@/modules/perception/types";
@@ -72,7 +73,7 @@ async function callGemini({
   prompt: string;
   photos: readonly PerceptionPhoto[];
   responseSchema: Record<string, unknown>;
-}): Promise<unknown> {
+}): Promise<{ parsed: unknown; model: string }> {
   const { GEMINI_API_KEY, GEMINI_MODEL } = geminiEnv();
 
   const response = await fetch(
@@ -105,10 +106,21 @@ async function callGemini({
   const text = readFirstText((await response.json()) as GeminiResponse);
 
   try {
-    return JSON.parse(text);
+    return { parsed: JSON.parse(text), model: GEMINI_MODEL };
   } catch {
     throw new Error("Gemini returned text that was not JSON");
   }
+}
+
+function observed<T>(
+  parse: (raw: unknown) => T,
+  response: { parsed: unknown; model: string },
+): PerceptionObservation<T> {
+  return {
+    value: parse(response.parsed),
+    rawOutput: response.parsed,
+    model: response.model,
+  };
 }
 
 const CLASSIFICATION_RESPONSE_SCHEMA = {
@@ -158,10 +170,13 @@ export function createGeminiProvider(): PerceptionProvider {
   return {
     name: "gemini",
 
-    async classify(input: PerceptionInput): Promise<ClassificationResult> {
+    async classify(
+      input: PerceptionInput,
+    ): Promise<PerceptionObservation<ClassificationResult>> {
       assertPhotosPresent(input);
 
-      return classificationResultSchema.parse(
+      return observed(
+        (raw) => classificationResultSchema.parse(raw),
         await callGemini({
           prompt: classificationPrompt(input),
           photos: input.photos,
@@ -170,10 +185,13 @@ export function createGeminiProvider(): PerceptionProvider {
       );
     },
 
-    async estimateDimensions(input: DimensionInput): Promise<DimensionResult> {
+    async estimateDimensions(
+      input: DimensionInput,
+    ): Promise<PerceptionObservation<DimensionResult>> {
       assertPhotosPresent(input);
 
-      return dimensionResultSchema.parse(
+      return observed(
+        (raw) => dimensionResultSchema.parse(raw),
         await callGemini({
           prompt: dimensionPrompt(input),
           photos: input.photos,
@@ -184,10 +202,11 @@ export function createGeminiProvider(): PerceptionProvider {
 
     async assessPhotoQuality(
       input: PerceptionInput,
-    ): Promise<PhotoQualityResult> {
+    ): Promise<PerceptionObservation<PhotoQualityResult>> {
       assertPhotosPresent(input);
 
-      return photoQualityResultSchema.parse(
+      return observed(
+        (raw) => photoQualityResultSchema.parse(raw),
         await callGemini({
           prompt: photoQualityPrompt(input),
           photos: input.photos,

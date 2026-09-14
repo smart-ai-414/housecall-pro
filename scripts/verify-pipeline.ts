@@ -37,10 +37,18 @@ import {
   DORMANT_QUESTION_IDS,
   MAX_QUESTIONS_PER_SESSION,
   OPENING_QUESTION_SEQUENCE,
+  PERCEPTION_DRIVEN_QUESTION_IDS,
   QUESTION_BANK,
+  QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT,
   SAFETY_GLAZING_QUESTION_ID,
   safetyGlazingMayBeRequired,
 } from "../modules/intake/question-bank";
+import {
+  CORNER_CLOSEUP_REQUEST_MESSAGE,
+  outstandingPhotoTypesFor,
+} from "../modules/photos/photo-requirements";
+import { priceBandFor } from "../modules/perception/price-bands";
+import { assessPricingGate } from "../modules/perception/pricing-gate";
 import {
   buildLineItemsFromCatalogueMatches,
   PLACEHOLDER_LINE_ITEM_NAME,
@@ -49,6 +57,10 @@ import {
   NON_CATALOGUE_TEMPLATE,
   renderNonCatalogueTemplate,
 } from "../modules/estimates/non-catalogue-template";
+import {
+  renderNotes,
+  type StructuredNotesHeader,
+} from "../modules/estimates/estimate-notes";
 import {
   classificationIsUsable,
   classificationResultSchema,
@@ -625,10 +637,14 @@ async function main() {
   const succeeds = {
     name: "succeeds",
     classify: async () => ({
-      assetType: "RESIDENTIAL_WINDOW" as const,
-      issueType: "CRACKED" as const,
-      frameMaterialHint: "UNKNOWN" as const,
-      confidence: 0.9,
+      value: {
+        assetType: "RESIDENTIAL_WINDOW" as const,
+        issueType: "CRACKED" as const,
+        frameMaterialHint: "UNKNOWN" as const,
+        confidence: 0.9,
+      },
+      rawOutput: { assetType: "RESIDENTIAL_WINDOW" },
+      model: "test-model-1",
     }),
     estimateDimensions: async () => {
       throw new Error("unused");
@@ -642,6 +658,233 @@ async function main() {
   check(
     "A working provider returns on the first attempt",
     ok.status === "OK" && ok.attempts === 1,
+  );
+  check(
+    "Provenance travels with the answer, so raw output and model can be stored",
+    ok.status === "OK" &&
+      ok.model === "test-model-1" &&
+      ok.rawOutput !== undefined,
+  );
+
+  console.log(
+    "\nCONFIDENCE ROUTING (a bad photo becomes a callback, not a price)",
+  );
+
+  const usableClassification = {
+    assetType: "SLIDING_DOOR" as const,
+    issueType: "SEAL_FAILURE" as const,
+    frameMaterialHint: "VINYL" as const,
+    confidence: 0.82,
+  };
+
+  check(
+    "A confident, known classification does not bypass pricing",
+    assessPricingGate({
+      classification: usableClassification,
+      photoQuality: {
+        overall: "GOOD",
+        problems: [],
+        shouldRequestCornerCloseUp: false,
+      },
+    }).shouldBypassPricing === false,
+  );
+  check(
+    "Confidence below the threshold bypasses pricing",
+    assessPricingGate({
+      classification: { ...usableClassification, confidence: 0.4 },
+      photoQuality: null,
+    }).shouldBypassPricing,
+  );
+  check(
+    "An unknown asset type bypasses pricing however confident the model is",
+    assessPricingGate({
+      classification: {
+        ...usableClassification,
+        assetType: "UNKNOWN",
+        confidence: 0.99,
+      },
+      photoQuality: null,
+    }).shouldBypassPricing,
+  );
+  check(
+    "Unusable photographs bypass pricing however confident the model is",
+    assessPricingGate({
+      classification: { ...usableClassification, confidence: 0.99 },
+      photoQuality: {
+        overall: "UNUSABLE",
+        problems: ["too dark"],
+        shouldRequestCornerCloseUp: false,
+      },
+    }).shouldBypassPricing,
+  );
+  check(
+    "A failed classification bypasses pricing rather than pricing nothing",
+    assessPricingGate({ classification: null, photoQuality: null })
+      .shouldBypassPricing,
+  );
+  check(
+    "The bypass carries a reason a reviewer can read",
+    assessPricingGate({
+      classification: { ...usableClassification, confidence: 0.1 },
+      photoQuality: null,
+    }).reasons.length > 0,
+  );
+
+  console.log(
+    "\nPRICE BANDS (dimension accuracy is judged by band, not by inch)",
+  );
+
+  check(
+    "A small pane lands in the smallest band",
+    priceBandFor(5) === "UP_TO_7_SQFT",
+  );
+  check(
+    "A band boundary belongs to the lower band",
+    priceBandFor(10) === "8_TO_10_SQFT",
+  );
+  check(
+    "A patio door lands in the largest band",
+    priceBandFor(40) === "OVER_30_SQFT",
+  );
+  check(
+    "A one-inch error does not move the band",
+    priceBandFor(squareFootageOf(72, 80)) ===
+      priceBandFor(squareFootageOf(73, 80)),
+  );
+
+  console.log(
+    "\nCONDITIONAL THIRD PHOTO (two up front, a third only when asked for)",
+  );
+
+  check(
+    "Only two photographs are required up front",
+    outstandingPhotoTypesFor({ received: [], requested: [], declined: [] })
+      .length === 2,
+  );
+  check(
+    "Nothing is outstanding once both required photographs arrive",
+    outstandingPhotoTypesFor({
+      received: ["INTERIOR_FLOOR_TO_CEILING", "EXTERIOR_FULL_ELEVATION"],
+      requested: [],
+      declined: [],
+    }).length === 0,
+  );
+  check(
+    "A requested close-up becomes outstanding",
+    outstandingPhotoTypesFor({
+      received: ["INTERIOR_FLOOR_TO_CEILING", "EXTERIOR_FULL_ELEVATION"],
+      requested: ["CORNER_CLOSEUP"],
+      declined: [],
+    }).includes("CORNER_CLOSEUP"),
+  );
+  check(
+    "A customer who cannot take it is not held up by it",
+    outstandingPhotoTypesFor({
+      received: ["INTERIOR_FLOOR_TO_CEILING", "EXTERIOR_FULL_ELEVATION"],
+      requested: ["CORNER_CLOSEUP"],
+      declined: ["CORNER_CLOSEUP"],
+    }).length === 0,
+  );
+  check(
+    "The close-up request explains why it is being asked for",
+    CORNER_CLOSEUP_REQUEST_MESSAGE.toLowerCase().includes("frame type"),
+  );
+
+  console.log("\nESTIMATE NOTES (what the reviewer reads without scrolling)");
+
+  const notesHeader: StructuredNotesHeader = {
+    source: "GlassBot intake",
+    reason: "COMPLETED_INTAKE",
+    environment: "non-production",
+    sessionId: "0197b1c4-0000-7000-8000-000000000000",
+    observed: {
+      assetType: "SLIDING_DOOR",
+      issueType: "SEAL_FAILURE",
+      frameMaterialHint: "VINYL",
+      classificationConfidence: 0.78,
+      lowConfidence: false,
+      photoQuality: "GOOD",
+      photoQualityProblems: [],
+      summary: "A sliding patio door with fogging between the panes.",
+      modelVersion: "gemini:gemini-2.5-flash",
+    },
+    measurements: {
+      widthInches: 72,
+      heightInches: 80,
+      squareFootage: 40,
+      priceBand: "OVER_30_SQFT",
+      scaleReference: "HEAD_HEIGHT",
+      scaleReferenceNote: "Head height visible at about 82 inches.",
+      dimensionConfidence: 0.65,
+      customerConfirmed: false,
+      customerCorrected: false,
+    },
+    pricing: { bypassed: false, reasons: [] },
+    pricingTemplateApplies: true,
+    customerSaid: [],
+    safetyGlazing: {
+      answered: true,
+      mayBeRequired: true,
+      answer: "Right beside a door",
+    },
+    unresolved: ["Frame material", "Pane count"],
+    reviewerMustCheck: ["The customer never confirmed the measurements."],
+    photos: [],
+  };
+
+  const notes = renderNotes(notesHeader);
+
+  check(
+    "The observation is separated from what the customer confirmed",
+    notes.includes("OBSERVED BY THE ASSISTANT (not verified)"),
+  );
+  check(
+    "An unconfirmed measurement says so where a reviewer will see it",
+    notes.includes("Customer confirmation: pending"),
+  );
+  check(
+    "The scale reference the model used is quoted, not just named",
+    notes.includes("Head height visible at about 82 inches"),
+  );
+  check(
+    "Square footage and the size band both appear",
+    notes.includes("40.0 sq ft") && notes.includes("over 30 sq ft"),
+  );
+  check(
+    "The model that produced the reading is recorded for replay",
+    notes.includes("gemini:gemini-2.5-flash"),
+  );
+  check(
+    "Unresolved items are counted, not buried",
+    notes.includes("UNRESOLVED (2)"),
+  );
+  check(
+    "Safety glazing keeps its own heading",
+    notes.includes("SAFETY GLAZING: MAY BE REQUIRED"),
+  );
+
+  const bypassed = renderNotes({
+    ...notesHeader,
+    pricing: {
+      bypassed: true,
+      reasons: ["Classification confidence was 31%."],
+    },
+  });
+
+  check(
+    "A bypassed job says so in the first lines of the notes",
+    bypassed.indexOf("pricing bypassed") <
+      bypassed.indexOf("OBSERVED BY THE ASSISTANT"),
+  );
+
+  const currencyInNotes = /[$£€]|\bunit_price\b|\bamount\b/.exec(
+    notes.replace(renderNonCatalogueTemplate().join("\n"), ""),
+  );
+
+  check(
+    "The assistant states no price anywhere in the notes it writes",
+    currencyInNotes === null,
+    currencyInNotes ? `found ${currencyInNotes[0]}` : "",
   );
 
   console.log("\nQUESTION BANK (plan 3.4 equipment and access)");
@@ -670,12 +913,17 @@ async function main() {
     DORMANT_QUESTION_IDS.join(", "),
   );
   check(
-    "Every question in the bank is either scheduled or dormant",
+    "Every question in the bank is scheduled, dormant, or perception-driven",
     Object.keys(QUESTION_BANK).every(
       (id) =>
         OPENING_QUESTION_SEQUENCE.includes(id as never) ||
-        DORMANT_QUESTION_IDS.includes(id as never),
+        DORMANT_QUESTION_IDS.includes(id as never) ||
+        PERCEPTION_DRIVEN_QUESTION_IDS.includes(id as never),
     ),
+  );
+  check(
+    "Dimension confirmation is never answered by a stray free-text message",
+    QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT.includes("DIMENSION_CONFIRMATION"),
   );
 
   console.log("\nNON-CATALOGUE PRICING TEMPLATE (reviewer reference only)");

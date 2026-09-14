@@ -140,6 +140,7 @@ export function isGeminiConfigured(): boolean {
 
 const anthropicSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, "required"),
+  ANTHROPIC_MODEL: z.string().min(1).default("claude-opus-5"),
 });
 
 export const anthropicEnv = memoizedPerProcess(() =>
@@ -148,4 +149,21 @@ export const anthropicEnv = memoizedPerProcess(() =>
 
 export function isAnthropicConfigured(): boolean {
   return anthropicSchema.safeParse(process.env).success;
+}
+
+const perceptionSchema = z.object({
+  PERCEPTION_CONFIDENCE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.6),
+  PERCEPTION_MAX_RUNS_PER_SESSION: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(3),
+});
+
+export const perceptionEnv = memoizedPerProcess(() =>
+  parseGroup("perception", perceptionSchema),
+);
+
+export function isPerceptionConfigured(): boolean {
+  return isGeminiConfigured() || isAnthropicConfigured();
 }

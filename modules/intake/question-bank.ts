@@ -8,7 +8,8 @@ export type QuestionId =
   | "OPENING_COUNT"
   | "ACCESS_HEIGHT"
   | "FIXED_VS_OPERABLE"
-  | "TEMPORARY_SECURING";
+  | "TEMPORARY_SECURING"
+  | "DIMENSION_CONFIRMATION";
 
 export interface BankedQuestion {
   id: QuestionId;
@@ -106,6 +107,14 @@ export const QUESTION_BANK: Record<QuestionId, BankedQuestion> = {
       "Not sure",
     ],
   },
+  DIMENSION_CONFIRMATION: {
+    id: "DIMENSION_CONFIRMATION",
+    prompt: "Does that size sound about right?",
+    helper:
+      "We read it from your photos, so it is an estimate. Correcting it now saves a wasted visit.",
+    answerKind: "choice",
+    choices: ["That sounds right", "It is a different size", "I am not sure"],
+  },
   TEMPORARY_SECURING: {
     id: "TEMPORARY_SECURING",
     prompt: "Is the opening secure right now, or is it open to the weather?",
@@ -135,6 +144,10 @@ export const OPENING_QUESTION_SEQUENCE: readonly QuestionId[] = [
   "FIXED_VS_OPERABLE",
 ];
 
+export const PERCEPTION_DRIVEN_QUESTION_IDS: readonly QuestionId[] = [
+  "DIMENSION_CONFIRMATION",
+];
+
 export const DORMANT_QUESTION_IDS: readonly QuestionId[] = [
   "PANE_COUNT",
   "GLASS_TYPE_MARKING",
@@ -149,6 +162,28 @@ export function conversationalQuestionsIn(
 }
 
 export const SAFETY_GLAZING_QUESTION_ID: QuestionId = "SAFETY_GLAZING_CONTEXT";
+
+export const DIMENSION_CONFIRMATION_QUESTION_ID: QuestionId =
+  "DIMENSION_CONFIRMATION";
+
+export const QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT: readonly QuestionId[] = [
+  "CONTACT_DETAILS",
+  "SERVICE_ADDRESS",
+  "DIMENSION_CONFIRMATION",
+];
+
+export function describeDimensionEstimate({
+  widthInches,
+  heightInches,
+}: {
+  widthInches: number;
+  heightInches: number;
+}): string {
+  const widthFeet = (widthInches / 12).toFixed(1);
+  const heightFeet = (heightInches / 12).toFixed(1);
+
+  return `From your photos that looks like roughly a ${widthFeet} foot wide by ${heightFeet} foot tall opening — about ${Math.round(widthInches)} by ${Math.round(heightInches)} inches.`;
+}
 
 const SAFETY_GLAZING_NEGATIVE_ANSWERS = ["none of these", "no", "none"];
 

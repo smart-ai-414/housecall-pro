@@ -13,16 +13,50 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDateTime } from "@/core/utils/format";
 import { EstimateStatusBadge } from "@/modules/dashboard/components/StatusBadge";
-import type { EstimateQueueRow } from "@/modules/estimates/estimate-queries";
+import { ReviewerEditForm } from "@/modules/estimates/components/ReviewerEditForm";
+import type {
+  EstimateObservation,
+  EstimateQueueRow,
+} from "@/modules/estimates/estimate-queries";
+import { humanizeEnumLabel } from "@/modules/estimates/estimate-notes";
 
 const COLUMNS = [
   "Status",
   "Customer",
+  "What the assistant saw",
   "Location",
   "Housecall Pro ID",
   "Flags",
   "Created",
 ] as const;
+
+function ObservationCell({
+  observation,
+}: {
+  observation: EstimateObservation | null;
+}) {
+  if (!observation) {
+    return <span className="text-slate-400">Not classified</span>;
+  }
+
+  const size =
+    observation.widthInches !== null && observation.heightInches !== null
+      ? `${Math.round(observation.widthInches)}in x ${Math.round(observation.heightInches)}in`
+      : "no size read";
+
+  return (
+    <div className="space-y-0.5">
+      <p className="font-medium text-slate-900">
+        {humanizeEnumLabel(observation.assetType)} ·{" "}
+        {humanizeEnumLabel(observation.issueType)}
+      </p>
+      <p className="text-xs text-slate-500">
+        {Math.round(observation.confidenceScore * 100)}% confident · {size}
+        {observation.customerConfirmedDimensions ? " (confirmed)" : ""}
+      </p>
+    </div>
+  );
+}
 
 export function EstimateReviewQueue({
   estimates,
@@ -62,6 +96,20 @@ export function EstimateReviewQueue({
                       {estimate.serviceAddress}
                     </p>
                   ) : null}
+                  <details className="mt-1.5">
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+                      Log a correction
+                      {estimate.reviewerEditCount > 0
+                        ? ` (${estimate.reviewerEditCount})`
+                        : ""}
+                    </summary>
+                    <div className="mt-2 w-80 max-w-full">
+                      <ReviewerEditForm estimateId={estimate.id} />
+                    </div>
+                  </details>
+                </TableCell>
+                <TableCell>
+                  <ObservationCell observation={estimate.observation} />
                 </TableCell>
                 <TableCell>
                   {estimate.locationName ?? (
@@ -75,6 +123,16 @@ export function EstimateReviewQueue({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1.5">
+                    {estimate.pricingBypassed ? (
+                      <Badge tone="stalled">Pricing bypassed</Badge>
+                    ) : null}
+                    {estimate.observation?.isLowConfidence ? (
+                      <Badge tone="waiting">Low confidence</Badge>
+                    ) : null}
+                    {estimate.observation?.photoQualityAssessment ===
+                    "UNUSABLE" ? (
+                      <Badge tone="stalled">Unusable photos</Badge>
+                    ) : null}
                     {estimate.needsWorkByHand ? (
                       <Badge tone="waiting">Quote by hand</Badge>
                     ) : null}

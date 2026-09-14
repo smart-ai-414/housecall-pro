@@ -8,7 +8,11 @@ import {
   buildLineItemsFromCatalogueMatches,
   createUnsentEstimate,
 } from "@/modules/housecall-pro/estimates";
-import { renderNonCatalogueTemplate } from "@/modules/estimates/non-catalogue-template";
+import {
+  renderNotes,
+  type StructuredNotesHeader,
+  type SyncReason,
+} from "@/modules/estimates/estimate-notes";
 import { createClientForLocation } from "@/modules/housecall-pro/location-client";
 import { resolveCustomer } from "@/modules/housecall-pro/customers";
 import {
@@ -36,7 +40,7 @@ import { buildDurablePhotoUrl } from "@/modules/photos/photo-link";
 import { PHOTO_TYPE_GUIDANCE } from "@/modules/photos/photo-service";
 import { createSignedReadUrl } from "@/modules/photos/storage";
 
-export type SyncReason = "COMPLETED_INTAKE" | "ABANDONED_PARTIAL_LEAD";
+export type { SyncReason } from "@/modules/estimates/estimate-notes";
 
 export type SyncOutcome =
   | { status: "ALREADY_SYNCED"; housecallProEstimateId: string }
@@ -44,125 +48,64 @@ export type SyncOutcome =
   | { status: "NOT_ROUTED"; message: string }
   | { status: "FAILED"; message: string };
 
-interface StructuredNotesHeader {
-  source: string;
-  reason: SyncReason;
-  environment: string;
-  sessionId: string;
-  observed: {
-    assetType: string | null;
-    issueType: string | null;
-    frameMaterialHint: string | null;
-    classificationConfidence: number | null;
-    lowConfidence: boolean;
-  };
-  measurements: {
-    widthInches: number | null;
-    heightInches: number | null;
-    squareFootage: number | null;
-    scaleReference: string | null;
-    customerConfirmed: boolean;
-  } | null;
-  pricingTemplateApplies: boolean;
-  customerSaid: { question: string; answer: string }[];
-  safetyGlazing: {
-    answered: boolean;
-    mayBeRequired: boolean | null;
-    answer: string | null;
-  };
-  reviewerMustCheck: string[];
-  photos: { label: string; url: string }[];
+function describePricingBypass(
+  classification: {
+    assetType: string;
+    issueType: string;
+    confidenceScore: number;
+    isLowConfidence: boolean;
+    photoQualityAssessment: string | null;
+  } | null,
+): string[] {
+  if (classification === null) {
+    return ["The assistant could not classify the job at all."];
+  }
+
+  const reasons: string[] = [];
+
+  if (classification.isLowConfidence) {
+    reasons.push(
+      `Classification confidence was ${Math.round(classification.confidenceScore * 100)}%.`,
+    );
+  }
+  if (classification.assetType === "UNKNOWN") {
+    reasons.push("The assistant could not tell what kind of opening this is.");
+  }
+  if (classification.issueType === "UNKNOWN") {
+    reasons.push("The assistant could not tell what is wrong with the glass.");
+  }
+  if (classification.photoQualityAssessment === "UNUSABLE") {
+    reasons.push("The photographs were not usable.");
+  }
+
+  return reasons;
 }
 
-function renderNotes(header: StructuredNotesHeader): string {
-  const lines: string[] = [
-    `${header.source} — ${header.environment}`,
-    "",
-    `Reason for sync: ${header.reason === "COMPLETED_INTAKE" ? "Customer completed intake" : "Customer went silent; partial lead"}`,
-    `Session: ${header.sessionId}`,
-    "",
-    "OBSERVED BY THE ASSISTANT (not verified):",
-    `  Asset: ${header.observed.assetType ?? "not classified"}`,
-    `  Issue: ${header.observed.issueType ?? "not classified"}`,
-    `  Frame material hint: ${header.observed.frameMaterialHint ?? "none"}`,
-    `  Confidence: ${
-      header.observed.classificationConfidence === null
-        ? "n/a"
-        : header.observed.classificationConfidence.toFixed(2)
-    }${header.observed.lowConfidence ? " (LOW — treat with suspicion)" : ""}`,
-    "",
-  ];
+function describeUnresolved({
+  outstandingQuestions,
+  classification,
+  dimensions,
+}: {
+  outstandingQuestions: readonly string[];
+  classification: { frameMaterialHint: string | null } | null;
+  dimensions: unknown;
+}): string[] {
+  const unresolved = outstandingQuestions
+    .filter(isQuestionId)
+    .map((questionId) => QUESTION_BANK[questionId as QuestionId].prompt);
 
-  if (header.measurements) {
-    lines.push(
-      "MEASUREMENTS:",
-      `  ${header.measurements.widthInches ?? "?"} x ${header.measurements.heightInches ?? "?"} inches` +
-        `${header.measurements.squareFootage ? ` (${header.measurements.squareFootage.toFixed(1)} sq ft)` : ""}`,
-      `  Scale reference: ${header.measurements.scaleReference ?? "unknown"}`,
-      `  Customer confirmed: ${header.measurements.customerConfirmed ? "YES" : "NO — do not price from these"}`,
-      "",
-    );
-  } else {
-    lines.push("MEASUREMENTS: none captured", "");
+  if (classification === null) {
+    unresolved.push("What kind of opening this is and what is wrong with it");
+  } else if (
+    classification.frameMaterialHint === null ||
+    classification.frameMaterialHint === "UNKNOWN"
+  ) {
+    unresolved.push("Frame material");
   }
 
-  if (header.customerSaid.length > 0) {
-    lines.push("WHAT THE CUSTOMER SAID:");
-    for (const entry of header.customerSaid) {
-      lines.push(`  ${entry.question}`);
-      lines.push(`    "${entry.answer}"`);
-    }
-    lines.push("");
-  }
+  if (dimensions === null) unresolved.push("Opening size");
 
-  lines.push("SAFETY GLAZING:");
-  if (!header.safetyGlazing.answered) {
-    lines.push("  Not asked. Verify on site before ordering.");
-  } else if (header.safetyGlazing.mayBeRequired === true) {
-    lines.push(
-      "  MAY BE REQUIRED — the customer described a location where code",
-      "  usually calls for it. Confirm on site before ordering glass.",
-      `  Customer said: "${header.safetyGlazing.answer}"`,
-    );
-  } else if (header.safetyGlazing.mayBeRequired === false) {
-    lines.push(
-      "  Customer reported none of the triggering locations.",
-      "  Still verify on site — this is their reading, not a survey.",
-      `  Customer said: "${header.safetyGlazing.answer}"`,
-    );
-  } else {
-    lines.push(
-      "  Customer was unsure. Treat as unknown and verify on site.",
-      `  Customer said: "${header.safetyGlazing.answer}"`,
-    );
-  }
-  lines.push("");
-
-  if (header.reviewerMustCheck.length > 0) {
-    lines.push("REVIEWER MUST CHECK:");
-    for (const item of header.reviewerMustCheck) {
-      lines.push(`  - ${item}`);
-    }
-    lines.push("");
-  }
-
-  if (header.pricingTemplateApplies) {
-    lines.push(...renderNonCatalogueTemplate(), "");
-  }
-
-  if (header.photos.length > 0) {
-    lines.push("PHOTOS:");
-    for (const photo of header.photos) {
-      lines.push(`  ${photo.label}: ${photo.url}`);
-    }
-    lines.push("");
-  }
-
-  lines.push(
-    "This estimate was created unsent. Prices come from the price book, not from the assistant.",
-  );
-
-  return lines.join("\n");
+  return unresolved;
 }
 
 export async function syncSessionToHousecallPro({
@@ -183,6 +126,8 @@ export async function syncSessionToHousecallPro({
       franchiseLocationId: true,
       isTestRecord: true,
       conversationState: true,
+      outstandingQuestions: true,
+      shouldBypassPricing: true,
       photos: {
         select: { id: true, photoType: true, storageKey: true },
       },
@@ -195,6 +140,11 @@ export async function syncSessionToHousecallPro({
           frameMaterialHint: true,
           confidenceScore: true,
           isLowConfidence: true,
+          photoQualityAssessment: true,
+          photoQualityProblems: true,
+          observationSummary: true,
+          bypassesPricing: true,
+          modelVersion: true,
         },
       },
       dimensionEstimates: {
@@ -205,6 +155,9 @@ export async function syncSessionToHousecallPro({
           heightInches: true,
           squareFootage: true,
           scaleReferenceUsed: true,
+          scaleReferenceNote: true,
+          confidenceScore: true,
+          priceBand: true,
           customerConfirmed: true,
           customerCorrectedWidth: true,
           customerCorrectedHeight: true,
@@ -328,11 +281,20 @@ export async function syncSessionToHousecallPro({
         ...describeMissingRequirements(missing),
       );
     }
+    const customerCorrected =
+      dimensions?.customerCorrectedWidth != null &&
+      dimensions?.customerCorrectedHeight != null;
+
     if (!dimensions) {
       reviewerMustCheck.push("No measurements were captured.");
-    } else if (!dimensions.customerConfirmed) {
+    } else if (!dimensions.customerConfirmed && !customerCorrected) {
       reviewerMustCheck.push(
         "The customer never confirmed the measurements. Verify before pricing.",
+      );
+    }
+    if (session.shouldBypassPricing) {
+      reviewerMustCheck.push(
+        "Pricing was bypassed. Nothing here was matched to the price book; quote this one by hand.",
       );
     }
     if (classification?.isLowConfidence) {
@@ -376,6 +338,16 @@ export async function syncSessionToHousecallPro({
         frameMaterialHint: classification?.frameMaterialHint ?? null,
         classificationConfidence: classification?.confidenceScore ?? null,
         lowConfidence: classification?.isLowConfidence ?? false,
+        photoQuality: classification?.photoQualityAssessment ?? null,
+        photoQualityProblems: classification?.photoQualityProblems ?? [],
+        summary: classification?.observationSummary ?? null,
+        modelVersion: classification?.modelVersion ?? null,
+      },
+      pricing: {
+        bypassed: session.shouldBypassPricing,
+        reasons: session.shouldBypassPricing
+          ? describePricingBypass(classification)
+          : [],
       },
       pricingTemplateApplies: session.catalogueMatches.length === 0,
       customerSaid,
@@ -391,10 +363,19 @@ export async function syncSessionToHousecallPro({
             heightInches:
               dimensions.customerCorrectedHeight ?? dimensions.heightInches,
             squareFootage: dimensions.squareFootage,
+            priceBand: dimensions.priceBand,
             scaleReference: dimensions.scaleReferenceUsed,
+            scaleReferenceNote: dimensions.scaleReferenceNote,
+            dimensionConfidence: dimensions.confidenceScore,
             customerConfirmed: dimensions.customerConfirmed,
+            customerCorrected,
           }
         : null,
+      unresolved: describeUnresolved({
+        outstandingQuestions: session.outstandingQuestions,
+        classification,
+        dimensions,
+      }),
       reviewerMustCheck,
       photos: photos.map((photo) => ({
         label: photo.label,

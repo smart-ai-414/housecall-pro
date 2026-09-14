@@ -7,16 +7,26 @@ export interface TranscriptEntry {
   at: string;
 }
 
+export interface DimensionConfirmationPrompt {
+  widthInches: number;
+  heightInches: number;
+  squareFootage: number;
+  summary: string;
+}
+
 export interface IntakeSessionView {
   sessionId: string;
   resumeToken: string;
   status: SessionStatus;
   transcript: TranscriptEntry[];
   outstandingPhotoTypes: PhotoType[];
+  requestedPhotoTypes: PhotoType[];
   outstandingQuestions: string[];
   locationName: string | null;
   photoUploadAvailable: boolean;
   isComplete: boolean;
+  perceptionPending: boolean;
+  pendingDimensionConfirmation: DimensionConfirmationPrompt | null;
 }
 
 export interface IntakeSessionWithRouting extends IntakeSessionView {

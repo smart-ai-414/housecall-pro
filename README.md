@@ -17,7 +17,8 @@ column anywhere in the database.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript strict · PostgreSQL via Prisma 7
-· Auth.js v5 · Tailwind v4 · sharp · Claude (Anthropic) · Housecall Pro REST API
+· Auth.js v5 · Tailwind v4 · sharp · Gemini or Claude for vision, chosen by
+environment variable · Housecall Pro REST API
 
 ## Getting started
 
@@ -45,9 +46,14 @@ secrets — generate each with `openssl rand -base64 32`:
 Set `PORT` there too if you do not want 3000. Leave `AUTH_URL` commented out in
 development so the origin follows whatever port you choose.
 
-`STORAGE_*`, `ANTHROPIC_API_KEY` and `CRON_SECRET` can stay empty until you need
-photo upload, vision, or the abandonment sweep. The app runs without them and
+`STORAGE_*`, `CRON_SECRET` and the vision keys can stay empty until you need
+photo upload, the abandonment sweep, or perception. The app runs without them and
 reports which integrations are unconfigured under **Settings**.
+
+Perception needs one of `GEMINI_API_KEY` (the default provider) or
+`ANTHROPIC_API_KEY`, and `PERCEPTION_PROVIDER` chooses between them without a
+code change. Run `npm run perception:probe` to see which are reachable from the
+machine you are on — see **Status** below.
 
 ### 3. Create the database
 
@@ -75,19 +81,21 @@ On the port from `.env` (3000 by default):
 
 ## Commands
 
-| Command                 | What it does                                                     |
-| ----------------------- | ---------------------------------------------------------------- |
-| `npm run dev`           | Dev server                                                       |
-| `npm run build`         | Generates the Prisma client, then builds                         |
-| `npm run typecheck`     | `tsc --noEmit`                                                   |
-| `npm run lint`          | ESLint                                                           |
-| `npm run format`        | Prettier                                                         |
-| `npm run verify`        | Asserts the image pipeline, crypto, routing and completion rules |
-| `npm run hcp:smoke`     | Probes the live Housecall Pro API. Read-only unless `--write`    |
-| `npm run hcp:catalogue` | Exports the service catalogue to `catalogue-export.json`         |
-| `npm run db:migrate`    | Create and apply a migration                                     |
-| `npm run db:seed`       | Seed development data                                            |
-| `npm run db:studio`     | Browse the database                                              |
+| Command                    | What it does                                                      |
+| -------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`              | Dev server                                                        |
+| `npm run build`            | Generates the Prisma client, then builds                          |
+| `npm run typecheck`        | `tsc --noEmit`                                                    |
+| `npm run lint`             | ESLint                                                            |
+| `npm run format`           | Prettier                                                          |
+| `npm run verify`           | Asserts the image pipeline, crypto, routing, perception and notes |
+| `npm run perception:probe` | One real call per configured vision provider; prints reachability |
+| `npm run accuracy`         | Classification and dimension accuracy from logged reviewer edits  |
+| `npm run hcp:smoke`        | Probes the live Housecall Pro API. Read-only unless `--write`     |
+| `npm run hcp:catalogue`    | Exports the service catalogue to `catalogue-export.json`          |
+| `npm run db:migrate`       | Create and apply a migration                                      |
+| `npm run db:seed`          | Seed development data                                             |
+| `npm run db:studio`        | Browse the database                                               |
 
 ## Registration is invite-only
 
@@ -171,14 +179,25 @@ Phase numbering follows the implementation plan (Phase 0 through Phase 4).
   session persistence, tenant routing, public intake routes, durable photo links
   in estimate notes, Turnstile, session event log, completion sync, and the
   abandonment sweep beneath it.
-- **Phase 2, perception** — vision classification and dimension estimation.
-  Not built.
+- **Phase 2, perception** — built. Classification, dimension estimation with a
+  ranked scale reference, photo-quality assessment and the conditional corner
+  close-up, confidence routing that sends a poor photograph to a callback lead
+  instead of a confident wrong answer, customer confirmation of the measurement,
+  and the reviewer correction log behind `npm run accuracy`. Two exit criteria
+  are operational and still open: 30 real reviewed submissions, and whether
+  Gemini is reachable from production.
 - **Phase 3, pricing** — catalogue matching and gap analysis. Not built.
 - **Phase 4, conversation** — adaptive questioning and multi-opening
   decomposition. Not built.
 
-The schema and module boundaries for phases 2–4 already exist; those tables are
+The schema and module boundaries for phases 3–4 already exist; those tables are
 simply unpopulated.
+
+**Gemini is blocked from this development machine.** `npm run perception:probe`
+returns `400 FAILED_PRECONDITION — User location is not supported for the API
+use`: a region restriction on the consumer API, not a bad key. Set
+`ANTHROPIC_API_KEY` to run perception locally, and run the probe again from the
+production host before deciding which provider ships.
 
 Phase 1 has not run end to end in any environment, because three things are
 unset: storage credentials, a franchise location carrying an API key, and

@@ -42,6 +42,14 @@ enum SessionEventType {
   SYNC_SUCCEEDED
   SYNC_FAILED
   ABANDONED
+  PERCEPTION_STARTED
+  PERCEPTION_SUCCEEDED
+  PERCEPTION_FAILED
+  PERCEPTION_SKIPPED
+  EXTRA_PHOTO_REQUESTED
+  EXTRA_PHOTO_DECLINED
+  DIMENSIONS_CONFIRMED
+  PRICING_BYPASSED
 }
 
 enum ScaleReference {
@@ -143,6 +151,12 @@ model CustomerSession {
 
   outstandingQuestions String[] @map("outstanding_questions")
 
+  requestedPhotoTypes PhotoType[] @map("requested_photo_types")
+  declinedPhotoTypes  PhotoType[] @map("declined_photo_types")
+
+  perceptionRunCount  Int     @default(0) @map("perception_run_count")
+  shouldBypassPricing Boolean @default(false) @map("should_bypass_pricing")
+
   lastCustomerMessageAt DateTime? @map("last_customer_message_at")
   abandonedAt           DateTime? @map("abandoned_at")
 
@@ -165,6 +179,7 @@ model CustomerSession {
   @@index([createdAt])
 
   @@index([status, lastCustomerMessageAt])
+  @@index([shouldBypassPricing])
   @@map("sessions")
 }
 
@@ -222,8 +237,12 @@ model Classification {
 
   confidenceScore        Float   @map("confidence_score")
   photoQualityAssessment String? @map("photo_quality_assessment")
+  photoQualityProblems   String[] @map("photo_quality_problems")
+
+  observationSummary String? @map("observation_summary")
 
   isLowConfidence Boolean @default(false) @map("is_low_confidence")
+  bypassesPricing Boolean @default(false) @map("bypasses_pricing")
 
   rawModelOutput Json   @map("raw_model_output")
   modelVersion   String @map("model_version")
@@ -245,6 +264,9 @@ model DimensionEstimate {
   squareFootage Float @map("square_footage")
 
   scaleReferenceUsed ScaleReference @map("scale_reference_used")
+  scaleReferenceNote String?        @map("scale_reference_note")
+
+  confidenceScore Float @map("confidence_score")
 
   customerConfirmed       Boolean @default(false) @map("customer_confirmed")
   customerCorrectedWidth  Float?  @map("customer_corrected_width")

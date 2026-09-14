@@ -8,6 +8,7 @@ import type {
   DimensionInput,
   PerceptionFunction,
   PerceptionInput,
+  PerceptionObservation,
   PerceptionOutcome,
   PerceptionProvider,
 } from "@/modules/perception/types";
@@ -41,7 +42,7 @@ async function runWithFailThrough<T>({
   maxAttempts = PERCEPTION_MAX_ATTEMPTS,
 }: {
   perceptionFunction: PerceptionFunction;
-  call: (provider: PerceptionProvider) => Promise<T>;
+  call: (provider: PerceptionProvider) => Promise<PerceptionObservation<T>>;
   provider: PerceptionProvider;
   timeoutMs?: number;
   maxAttempts?: number;
@@ -50,10 +51,12 @@ async function runWithFailThrough<T>({
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const value = await withTimeout(call(provider), timeoutMs);
+      const observation = await withTimeout(call(provider), timeoutMs);
       return {
         status: "OK",
-        value,
+        value: observation.value,
+        rawOutput: observation.rawOutput,
+        model: observation.model,
         provider: provider.name,
         attempts: attempt,
       };
@@ -76,7 +79,7 @@ async function runWithFailThrough<T>({
 
 async function guarded<T>(
   perceptionFunction: PerceptionFunction,
-  call: (provider: PerceptionProvider) => Promise<T>,
+  call: (provider: PerceptionProvider) => Promise<PerceptionObservation<T>>,
   overrides?: { provider?: PerceptionProvider; timeoutMs?: number },
 ): Promise<PerceptionOutcome<T>> {
   let provider: PerceptionProvider;

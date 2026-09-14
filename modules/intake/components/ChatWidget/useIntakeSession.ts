@@ -72,10 +72,14 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   return (await response.json()) as T;
 }
 
+export type DimensionConfirmationResponse =
+  "CONFIRMED" | "CORRECTED" | "UNSURE";
+
 export interface IntakeSessionController {
   session: IntakeSessionView | null;
   isStarting: boolean;
   isSending: boolean;
+  isAnalyzing: boolean;
   uploadingPhotoType: PhotoType | null;
   error: string | null;
   start: () => Promise<void>;
@@ -87,9 +91,17 @@ export interface IntakeSessionController {
     email: string;
     serviceAddress: string;
   }) => Promise<void>;
+  confirmDimensions: (input: {
+    response: DimensionConfirmationResponse;
+    widthInches?: number | null;
+    heightInches?: number | null;
+  }) => Promise<void>;
+  declinePhoto: (photoType: PhotoType) => Promise<void>;
   reset: () => void;
   dismissError: () => void;
 }
+
+const MAX_CLIENT_ANALYZE_ATTEMPTS = 3;
 
 export function useIntakeSession(
   resumeCredentials?: StoredCredentials | null,
@@ -98,6 +110,7 @@ export function useIntakeSession(
   const [session, setSession] = useState<IntakeSessionView | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadingPhotoType, setUploadingPhotoType] =
     useState<PhotoType | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -254,6 +267,86 @@ export function useIntakeSession(
     [credentialsFor, session],
   );
 
+  const analyzeAttemptsRef = useRef(0);
+
+  const analyze = useCallback(async () => {
+    setIsAnalyzing(true);
+
+    try {
+      const updated = await postJson<IntakeSessionView>(
+        "/api/intake/analyze",
+        credentialsFor(session),
+      );
+      setSession(updated);
+    } catch {
+      return;
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [credentialsFor, session]);
+
+  useEffect(() => {
+    if (!session?.perceptionPending) return;
+    if (isAnalyzing) return;
+    if (analyzeAttemptsRef.current >= MAX_CLIENT_ANALYZE_ATTEMPTS) return;
+
+    analyzeAttemptsRef.current += 1;
+    void analyze();
+  }, [analyze, isAnalyzing, session?.perceptionPending]);
+
+  const confirmDimensions = useCallback(
+    async (input: {
+      response: DimensionConfirmationResponse;
+      widthInches?: number | null;
+      heightInches?: number | null;
+    }) => {
+      setIsSending(true);
+      setError(null);
+
+      try {
+        const updated = await postJson<IntakeSessionView>(
+          "/api/intake/confirm-dimensions",
+          {
+            ...credentialsFor(session),
+            response: input.response,
+            widthInches: input.widthInches ?? null,
+            heightInches: input.heightInches ?? null,
+          },
+        );
+        setSession(updated);
+      } catch (caught) {
+        setError(
+          caught instanceof Error ? caught.message : "Could not save that.",
+        );
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [credentialsFor, session],
+  );
+
+  const declinePhoto = useCallback(
+    async (photoType: PhotoType) => {
+      setIsSending(true);
+      setError(null);
+
+      try {
+        const updated = await postJson<IntakeSessionView>(
+          "/api/intake/decline-photo",
+          { ...credentialsFor(session), photoType },
+        );
+        setSession(updated);
+      } catch (caught) {
+        setError(
+          caught instanceof Error ? caught.message : "Could not save that.",
+        );
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [credentialsFor, session],
+  );
+
   const reset = useCallback(() => {
     clearStoredCredentials();
     setSession(null);
@@ -266,12 +359,15 @@ export function useIntakeSession(
     session,
     isStarting,
     isSending,
+    isAnalyzing,
     uploadingPhotoType,
     error,
     start,
     sendMessage,
     uploadPhoto,
     submitContactDetails,
+    confirmDimensions,
+    declinePhoto,
     reset,
     dismissError,
   };

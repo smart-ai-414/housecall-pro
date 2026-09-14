@@ -7,6 +7,11 @@ import {
   processPhotoForAnalysis,
 } from "@/modules/photos/image-processing";
 import {
+  outstandingPhotoTypesFor,
+  REQUIRED_PHOTO_TYPES,
+} from "@/modules/photos/photo-requirements";
+export * from "@/modules/photos/photo-requirements";
+import {
   buildProcessedKey,
   createSignedUploadUrl,
   deleteObject,
@@ -16,32 +21,6 @@ import {
   uploadProcessedPhoto,
   type SignedUpload,
 } from "@/modules/photos/storage";
-
-export const PHOTO_TYPE_GUIDANCE: Record<
-  PhotoType,
-  { label: string; instruction: string }
-> = {
-  INTERIOR_FLOOR_TO_CEILING: {
-    label: "Inside, floor to ceiling",
-    instruction:
-      "Stand back inside the room and get the whole opening in frame, from the floor to the ceiling. The floor and ceiling give us the scale.",
-  },
-  EXTERIOR_FULL_ELEVATION: {
-    label: "Outside, the whole wall",
-    instruction:
-      "From outside, capture the full wall the opening sits in, including the ground.",
-  },
-  CORNER_CLOSEUP: {
-    label: "Close-up of a corner",
-    instruction:
-      "Get close to one corner of the glass so we can see the frame edge and any markings on the pane.",
-  },
-};
-
-export const REQUIRED_PHOTO_TYPES: readonly PhotoType[] = [
-  "INTERIOR_FLOOR_TO_CEILING",
-  "EXTERIOR_FULL_ELEVATION",
-];
 
 export const PHOTO_UPLOAD_UNAVAILABLE_MESSAGE =
   "Photo upload is not switched on yet. Carry on without photos and our team will be in touch, or call us and we will take the details over the phone.";
@@ -156,12 +135,20 @@ export async function ingestUploadedPhoto({
 export async function listOutstandingPhotoTypes(
   sessionId: string,
 ): Promise<PhotoType[]> {
-  const received = await prisma.sessionPhoto.findMany({
-    where: { sessionId },
-    select: { photoType: true },
+  const session = await prisma.customerSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      requestedPhotoTypes: true,
+      declinedPhotoTypes: true,
+      photos: { select: { photoType: true } },
+    },
   });
 
-  const receivedTypes = new Set(received.map((photo) => photo.photoType));
+  if (!session) return [...REQUIRED_PHOTO_TYPES];
 
-  return REQUIRED_PHOTO_TYPES.filter((type) => !receivedTypes.has(type));
+  return outstandingPhotoTypesFor({
+    received: session.photos.map((photo) => photo.photoType),
+    requested: session.requestedPhotoTypes,
+    declined: session.declinedPhotoTypes,
+  });
 }

@@ -8,11 +8,14 @@ import { cn } from "@/core/utils/cn";
 import { ChatTranscript } from "@/modules/intake/components/ChatWidget/ChatTranscript";
 import { CompletionNotice } from "@/modules/intake/components/ChatWidget/CompletionNotice";
 import { ContactDetailsForm } from "@/modules/intake/components/ChatWidget/ContactDetailsForm";
+import { DimensionConfirmationRow } from "@/modules/intake/components/ChatWidget/DimensionConfirmationRow";
 import {
+  PerceptionRunningNotice,
   PhotoCompleteNotice,
   PhotoUploadRow,
   PhotoUploadUnavailableNotice,
 } from "@/modules/intake/components/ChatWidget/PhotoUploadRow";
+import { isRequiredPhotoType } from "@/modules/photos/photo-requirements";
 import { ResumeLinkRow } from "@/modules/intake/components/ChatWidget/ResumeLinkRow";
 import {
   useIntakeSession,
@@ -157,9 +160,19 @@ export function EstimateChatWidget({
                   photoType={photoType}
                   isUploading={intake.uploadingPhotoType === photoType}
                   isDisabled={intake.uploadingPhotoType !== null}
+                  isOptional={!isRequiredPhotoType(photoType)}
                   onSelect={(file) => void intake.uploadPhoto(photoType, file)}
+                  onDecline={() => void intake.declinePhoto(photoType)}
                 />
               ))
+            ) : intake.isAnalyzing || session.perceptionPending ? (
+              <PerceptionRunningNotice />
+            ) : session.pendingDimensionConfirmation ? (
+              <DimensionConfirmationRow
+                prompt={session.pendingDimensionConfirmation}
+                isSubmitting={intake.isSending}
+                onRespond={(input) => void intake.confirmDimensions(input)}
+              />
             ) : (
               <PhotoCompleteNotice />
             )}

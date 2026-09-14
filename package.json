@@ -15,6 +15,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "verify": "tsx scripts/verify-pipeline.ts",
+    "accuracy": "tsx scripts/accuracy-report.ts",
+    "perception:probe": "tsx scripts/probe-perception.ts",
     "hcp:smoke": "tsx scripts/smoke-test-hcp.ts",
     "hcp:catalogue": "tsx scripts/export-catalogue.ts",
     "setup:location": "tsx scripts/setup-location.ts",
@@ -25,6 +27,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "@aws-sdk/client-s3": "^3.1127.0",
     "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "@prisma/adapter-pg": "^7.10.0",

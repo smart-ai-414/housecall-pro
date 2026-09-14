@@ -94,7 +94,7 @@ export const SCALE_REFERENCE_RANK: Record<ScaleReference, number> = {
   FRAME_FACE: 5,
 };
 
-export const PROVISIONAL_LOW_CONFIDENCE_THRESHOLD = 0.7;
+export const PROVISIONAL_LOW_CONFIDENCE_THRESHOLD = 0.6;
 
 export function squareFootageOf(
   widthInches: number,
@@ -110,10 +110,30 @@ export function isLowConfidence(
   return confidence < threshold;
 }
 
-export function classificationIsUsable(result: ClassificationResult): boolean {
+export function classificationIsUsable(
+  result: ClassificationResult,
+  threshold = PROVISIONAL_LOW_CONFIDENCE_THRESHOLD,
+): boolean {
   return (
     result.assetType !== "UNKNOWN" &&
     result.issueType !== "UNKNOWN" &&
-    !isLowConfidence(result.confidence)
+    !isLowConfidence(result.confidence, threshold)
   );
+}
+
+export const DIMENSION_CONFIDENCE_BANDS = [
+  { label: "low", upperBound: 0.5 },
+  { label: "medium", upperBound: 0.75 },
+  { label: "high", upperBound: 1 },
+] as const;
+
+export function describeConfidence(confidence: number): string {
+  return (
+    DIMENSION_CONFIDENCE_BANDS.find((band) => confidence <= band.upperBound)
+      ?.label ?? "high"
+  );
+}
+
+export function inchesAsFeet(inches: number): string {
+  return (inches / 12).toFixed(1);
 }

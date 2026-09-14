@@ -19,22 +19,35 @@ import {
   parseConversationState,
   toPlainJson,
   visibleTranscript,
+  type ChatMessage,
   type ConversationState,
 } from "@/modules/intake/conversation-state";
 import {
+  describeDimensionEstimate,
+  DIMENSION_CONFIRMATION_QUESTION_ID,
   OPENING_QUESTION_SEQUENCE,
   QUESTION_BANK,
+  QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT,
 } from "@/modules/intake/question-bank";
 import { recordSessionEvent } from "@/modules/intake/session-events";
 import { assessSessionCompleteness } from "@/modules/intake/completion";
 import { syncSessionToHousecallPro } from "@/modules/estimates/estimate-sync-service";
 import { shouldMarkAsTestRecord } from "@/modules/housecall-pro/test-guard";
 import {
+  perceptionIsPending,
+  runPerceptionForSession,
+  type PerceptionSummary,
+} from "@/modules/perception/perception-pipeline";
+import {
+  CONDITIONAL_PHOTO_TYPE,
+  CORNER_CLOSEUP_REQUEST_MESSAGE,
   isPhotoUploadAvailable,
+  outstandingPhotoTypesFor,
   PHOTO_TYPE_GUIDANCE,
   REQUIRED_PHOTO_TYPES,
 } from "@/modules/photos/photo-service";
 import type {
+  DimensionConfirmationPrompt,
   IntakeSessionView,
   IntakeSessionWithRouting,
 } from "@/modules/intake/types";
@@ -57,6 +70,20 @@ const OPENING_MESSAGE_WITHOUT_PHOTOS = [
   "",
   "Photo upload is not switched on yet. Start with your name, phone number and the service address, then tell me what happened in your own words. A glazier will follow up to measure and price the work.",
 ].join("\n");
+
+const LOOKING_AT_PHOTOS_MESSAGE =
+  "Thanks. Let me look at those photos for a moment.";
+
+const PERCEPTION_UNAVAILABLE_MESSAGE = [
+  "I could not read those photos well enough to say anything useful about them.",
+  "That is not a problem — I have kept them, and one of our glaziers will look at",
+  "them and call you.",
+].join(" ");
+
+const NO_SCALE_REFERENCE_MESSAGE = [
+  "I can see the damage, but there is nothing in the photos that tells me the size",
+  "reliably, so I would rather not guess. A glazier will measure it.",
+].join(" ");
 
 function openingMessage(): string {
   return isPhotoUploadAvailable()
@@ -108,10 +135,13 @@ export async function startIntakeSession({
     outstandingPhotoTypes: isPhotoUploadAvailable()
       ? [...REQUIRED_PHOTO_TYPES]
       : [],
+    requestedPhotoTypes: [],
     outstandingQuestions: session.outstandingQuestions,
     locationName: null,
     photoUploadAvailable: isPhotoUploadAvailable(),
     isComplete: false,
+    perceptionPending: false,
+    pendingDimensionConfirmation: null,
   };
 }
 
@@ -189,6 +219,83 @@ async function persistState({
   });
 }
 
+async function composeSessionView({
+  sessionId,
+  resumeToken,
+  state,
+  status,
+  outstandingQuestions,
+  locationName,
+  isComplete,
+}: {
+  sessionId: string;
+  resumeToken: string;
+  state: ConversationState;
+  status: SessionStatus;
+  outstandingQuestions: string[];
+  locationName: string | null;
+  isComplete: boolean;
+}): Promise<IntakeSessionView> {
+  const session = await prisma.customerSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      requestedPhotoTypes: true,
+      declinedPhotoTypes: true,
+      photos: { select: { photoType: true } },
+      dimensionEstimates: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          widthInches: true,
+          heightInches: true,
+          squareFootage: true,
+          customerConfirmed: true,
+        },
+      },
+    },
+  });
+
+  const outstandingPhotoTypes =
+    isPhotoUploadAvailable() && session
+      ? outstandingPhotoTypesFor({
+          received: session.photos.map((photo) => photo.photoType),
+          requested: session.requestedPhotoTypes,
+          declined: session.declinedPhotoTypes,
+        })
+      : [];
+
+  const latestDimensions = session?.dimensionEstimates[0] ?? null;
+
+  const pendingDimensionConfirmation: DimensionConfirmationPrompt | null =
+    latestDimensions &&
+    outstandingQuestions.includes(DIMENSION_CONFIRMATION_QUESTION_ID)
+      ? {
+          widthInches: latestDimensions.widthInches,
+          heightInches: latestDimensions.heightInches,
+          squareFootage: latestDimensions.squareFootage,
+          summary: describeDimensionEstimate(latestDimensions),
+        }
+      : null;
+
+  return {
+    sessionId,
+    resumeToken,
+    status,
+    transcript: visibleTranscript(state),
+    outstandingPhotoTypes,
+    requestedPhotoTypes: session?.requestedPhotoTypes ?? [],
+    outstandingQuestions,
+    locationName,
+    photoUploadAvailable: isPhotoUploadAvailable(),
+    isComplete,
+    perceptionPending:
+      isPhotoUploadAvailable() &&
+      outstandingPhotoTypes.length === 0 &&
+      (await perceptionIsPending(sessionId)),
+    pendingDimensionConfirmation,
+  };
+}
+
 export async function recordCustomerMessage({
   sessionId,
   resumeToken,
@@ -200,7 +307,8 @@ export async function recordCustomerMessage({
 }): Promise<IntakeSessionView> {
   const session = await authenticateSession({ sessionId, resumeToken });
 
-  const outstandingPhotoTypes = await outstandingPhotoTypesFor(sessionId);
+  const outstandingPhotoTypes =
+    await outstandingPhotoTypesForSession(sessionId);
 
   const answeredNow = questionAnsweredByFreeText(session.outstandingQuestions);
   const remainingQuestions = answeredNow
@@ -241,17 +349,15 @@ export async function recordCustomerMessage({
 
   const completion = await syncIfIntakeComplete(sessionId);
 
-  return {
+  return composeSessionView({
     sessionId,
     resumeToken,
+    state: nextState,
     status: completion.status ?? session.status,
-    transcript: visibleTranscript(nextState),
-    outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
     locationName: session.locationName,
-    photoUploadAvailable: isPhotoUploadAvailable(),
     isComplete: completion.isComplete,
-  };
+  });
 }
 
 export async function recordContactDetails({
@@ -276,7 +382,8 @@ export async function recordContactDetails({
   const routedLocationId = routedLocation?.id ?? null;
   const routingNote = describeRoutingResult(routing);
 
-  const outstandingPhotoTypes = await outstandingPhotoTypesFor(sessionId);
+  const outstandingPhotoTypes =
+    await outstandingPhotoTypesForSession(sessionId);
 
   const acknowledgement = routedLocation
     ? `Thanks. Your job will be handled by ${routedLocation.name}.`
@@ -330,20 +437,19 @@ export async function recordContactDetails({
 
   const completion = await syncIfIntakeComplete(sessionId);
 
-  return {
+  const view = await composeSessionView({
     sessionId,
     resumeToken,
+    state: nextState,
     status:
       completion.status ??
       (routedLocationId ? session.status : "NEEDS_CALLBACK"),
-    transcript: visibleTranscript(nextState),
-    outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
     locationName: routedLocation?.name ?? null,
-    photoUploadAvailable: isPhotoUploadAvailable(),
     isComplete: completion.isComplete,
-    routingNote,
-  };
+  });
+
+  return { ...view, routingNote };
 }
 
 export async function recordPhotoReceived({
@@ -356,11 +462,12 @@ export async function recordPhotoReceived({
   photoType: PhotoType;
 }): Promise<IntakeSessionView> {
   const session = await authenticateSession({ sessionId, resumeToken });
-  const outstandingPhotoTypes = await outstandingPhotoTypesFor(sessionId);
+  const outstandingPhotoTypes =
+    await outstandingPhotoTypesForSession(sessionId);
 
   const nextMessage =
     outstandingPhotoTypes.length === 0
-      ? "Got both photos, thank you. Tell me what happened to the glass in your own words."
+      ? LOOKING_AT_PHOTOS_MESSAGE
       : `Got it. Now ${PHOTO_TYPE_GUIDANCE[outstandingPhotoTypes[0]].instruction.toLowerCase()}`;
 
   const nextState = appendMessages(
@@ -384,17 +491,279 @@ export async function recordPhotoReceived({
 
   const completion = await syncIfIntakeComplete(sessionId);
 
-  return {
+  return composeSessionView({
     sessionId,
     resumeToken,
+    state: nextState,
     status: completion.status ?? status,
-    transcript: visibleTranscript(nextState),
-    outstandingPhotoTypes,
     outstandingQuestions: session.outstandingQuestions,
     locationName: session.locationName,
-    photoUploadAvailable: isPhotoUploadAvailable(),
     isComplete: completion.isComplete,
-  };
+  });
+}
+
+function describeObservation(summary: PerceptionSummary): string {
+  const { classification } = summary;
+
+  if (!classification) return PERCEPTION_UNAVAILABLE_MESSAGE;
+
+  return (
+    classification.reasoning?.trim() ||
+    "I have had a look at your photos and passed what I can see to our team."
+  );
+}
+
+function perceptionReplies(summary: PerceptionSummary): {
+  messages: string[];
+  asksForDimensionConfirmation: boolean;
+} {
+  const messages = [describeObservation(summary)];
+
+  if (summary.requestCornerCloseUp) {
+    messages.push(CORNER_CLOSEUP_REQUEST_MESSAGE);
+    return { messages, asksForDimensionConfirmation: false };
+  }
+
+  if (summary.dimensions) {
+    messages.push(
+      `${describeDimensionEstimate(summary.dimensions)} ${QUESTION_BANK.DIMENSION_CONFIRMATION.prompt}`,
+    );
+    return { messages, asksForDimensionConfirmation: true };
+  }
+
+  messages.push(NO_SCALE_REFERENCE_MESSAGE);
+  return { messages, asksForDimensionConfirmation: false };
+}
+
+export async function analyzeSessionPhotos({
+  sessionId,
+  resumeToken,
+}: {
+  sessionId: string;
+  resumeToken: string;
+}): Promise<IntakeSessionView> {
+  const session = await authenticateSession({ sessionId, resumeToken });
+
+  const outcome = await runPerceptionForSession(sessionId);
+
+  if (outcome.status !== "COMPLETED") {
+    const completion = await syncIfIntakeComplete(sessionId);
+
+    return composeSessionView({
+      sessionId,
+      resumeToken,
+      state: session.state,
+      status: completion.status ?? session.status,
+      outstandingQuestions: session.outstandingQuestions,
+      locationName: session.locationName,
+      isComplete: completion.isComplete,
+    });
+  }
+
+  const { summary } = outcome;
+  const { messages, asksForDimensionConfirmation } = perceptionReplies(summary);
+
+  const spoken: ChatMessage[] = messages.map((content) =>
+    createMessage("assistant", content),
+  );
+
+  const nextState = appendMessages(session.state, ...spoken);
+
+  const outstandingQuestions = asksForDimensionConfirmation
+    ? [
+        ...new Set([
+          ...session.outstandingQuestions,
+          DIMENSION_CONFIRMATION_QUESTION_ID,
+        ]),
+      ]
+    : session.outstandingQuestions;
+
+  if (summary.requestCornerCloseUp) {
+    await prisma.customerSession.update({
+      where: { id: sessionId },
+      data: { requestedPhotoTypes: { push: CONDITIONAL_PHOTO_TYPE } },
+    });
+
+    await recordSessionEvent(sessionId, "EXTRA_PHOTO_REQUESTED", {
+      photoType: CONDITIONAL_PHOTO_TYPE,
+      problems: summary.photoQuality?.problems ?? [],
+    });
+  }
+
+  await persistState({
+    sessionId,
+    state: nextState,
+    status: summary.shouldBypassPricing ? "NEEDS_CALLBACK" : "QUESTIONING",
+    outstandingQuestions,
+    touchCustomerActivity: false,
+  });
+
+  const completion = await syncIfIntakeComplete(sessionId);
+
+  return composeSessionView({
+    sessionId,
+    resumeToken,
+    state: nextState,
+    status:
+      completion.status ??
+      (summary.shouldBypassPricing ? "NEEDS_CALLBACK" : "QUESTIONING"),
+    outstandingQuestions,
+    locationName: session.locationName,
+    isComplete: completion.isComplete,
+  });
+}
+
+export type DimensionConfirmationResponse =
+  "CONFIRMED" | "CORRECTED" | "UNSURE";
+
+export async function recordDimensionConfirmation({
+  sessionId,
+  resumeToken,
+  response,
+  widthInches,
+  heightInches,
+}: {
+  sessionId: string;
+  resumeToken: string;
+  response: DimensionConfirmationResponse;
+  widthInches: number | null;
+  heightInches: number | null;
+}): Promise<IntakeSessionView> {
+  const session = await authenticateSession({ sessionId, resumeToken });
+
+  const estimate = await prisma.dimensionEstimate.findFirst({
+    where: { sessionId },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, widthInches: true, heightInches: true },
+  });
+
+  if (!estimate) {
+    throw new AppError(
+      "VALIDATION_FAILED",
+      "There is no measurement to confirm on this estimate yet.",
+    );
+  }
+
+  if (response === "CORRECTED" && (!widthInches || !heightInches)) {
+    throw new AppError(
+      "VALIDATION_FAILED",
+      "Give both a width and a height, in inches or feet.",
+    );
+  }
+
+  await prisma.dimensionEstimate.update({
+    where: { id: estimate.id },
+    data: {
+      customerConfirmed: response === "CONFIRMED",
+      customerCorrectedWidth: response === "CORRECTED" ? widthInches : null,
+      customerCorrectedHeight: response === "CORRECTED" ? heightInches : null,
+    },
+  });
+
+  const customerWords =
+    response === "CONFIRMED"
+      ? "That sounds right."
+      : response === "CORRECTED"
+        ? `It is about ${widthInches} by ${heightInches} inches.`
+        : "I am not sure.";
+
+  const reply =
+    response === "CORRECTED"
+      ? "Thank you — I have replaced my estimate with your measurement."
+      : response === "CONFIRMED"
+        ? "Thank you. A glazier will still check it on site before ordering."
+        : "No problem. A glazier will measure it when they visit.";
+
+  const nextState = mergeCollectedDetails(
+    appendMessages(
+      session.state,
+      createMessage("customer", customerWords),
+      createMessage("assistant", reply),
+    ),
+    {
+      answeredQuestionIds: [DIMENSION_CONFIRMATION_QUESTION_ID],
+      answers: { [DIMENSION_CONFIRMATION_QUESTION_ID]: customerWords },
+    },
+  );
+
+  const remainingQuestions = session.outstandingQuestions.filter(
+    (id) => id !== DIMENSION_CONFIRMATION_QUESTION_ID,
+  );
+
+  await persistState({
+    sessionId,
+    state: nextState,
+    outstandingQuestions: remainingQuestions,
+  });
+
+  await recordSessionEvent(sessionId, "DIMENSIONS_CONFIRMED", {
+    response,
+    widthInches,
+    heightInches,
+    estimatedWidthInches: estimate.widthInches,
+    estimatedHeightInches: estimate.heightInches,
+  });
+
+  const completion = await syncIfIntakeComplete(sessionId);
+
+  return composeSessionView({
+    sessionId,
+    resumeToken,
+    state: nextState,
+    status: completion.status ?? session.status,
+    outstandingQuestions: remainingQuestions,
+    locationName: session.locationName,
+    isComplete: completion.isComplete,
+  });
+}
+
+export async function declineRequestedPhoto({
+  sessionId,
+  resumeToken,
+  photoType,
+}: {
+  sessionId: string;
+  resumeToken: string;
+  photoType: PhotoType;
+}): Promise<IntakeSessionView> {
+  const session = await authenticateSession({ sessionId, resumeToken });
+
+  if (REQUIRED_PHOTO_TYPES.includes(photoType)) {
+    throw new AppError(
+      "VALIDATION_FAILED",
+      "That photo is one of the two we always need.",
+    );
+  }
+
+  await prisma.customerSession.update({
+    where: { id: sessionId },
+    data: { declinedPhotoTypes: { push: photoType } },
+  });
+
+  const nextState = appendMessages(
+    session.state,
+    createMessage("customer", "I cannot get that photo."),
+    createMessage(
+      "assistant",
+      "That is fine. I have noted it so the glazier checks the frame on site.",
+    ),
+  );
+
+  await persistState({ sessionId, state: nextState });
+
+  await recordSessionEvent(sessionId, "EXTRA_PHOTO_DECLINED", { photoType });
+
+  const completion = await syncIfIntakeComplete(sessionId);
+
+  return composeSessionView({
+    sessionId,
+    resumeToken,
+    state: nextState,
+    status: completion.status ?? session.status,
+    outstandingQuestions: session.outstandingQuestions,
+    locationName: session.locationName,
+    isComplete: completion.isComplete,
+  });
 }
 
 interface CompletionAttempt {
@@ -433,24 +802,28 @@ async function syncIfIntakeComplete(
   return { isComplete: true, status: synced ? "SYNCED" : null };
 }
 
-async function outstandingPhotoTypesFor(
+async function outstandingPhotoTypesForSession(
   sessionId: string,
 ): Promise<PhotoType[]> {
   if (!isPhotoUploadAvailable()) return [];
 
-  const received = await prisma.sessionPhoto.findMany({
-    where: { sessionId },
-    select: { photoType: true },
+  const session = await prisma.customerSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      requestedPhotoTypes: true,
+      declinedPhotoTypes: true,
+      photos: { select: { photoType: true } },
+    },
   });
 
-  const receivedTypes = new Set(received.map((photo) => photo.photoType));
-  return REQUIRED_PHOTO_TYPES.filter((type) => !receivedTypes.has(type));
-}
+  if (!session) return [...REQUIRED_PHOTO_TYPES];
 
-const QUESTIONS_ANSWERED_BY_THE_CONTACT_FORM: readonly string[] = [
-  "CONTACT_DETAILS",
-  "SERVICE_ADDRESS",
-];
+  return outstandingPhotoTypesFor({
+    received: session.photos.map((photo) => photo.photoType),
+    requested: session.requestedPhotoTypes,
+    declined: session.declinedPhotoTypes,
+  });
+}
 
 function questionAnsweredByFreeText(
   outstandingQuestions: readonly string[],
@@ -461,7 +834,9 @@ function questionAnsweredByFreeText(
     outstandingQuestions.find(
       (id) =>
         id in QUESTION_BANK &&
-        !QUESTIONS_ANSWERED_BY_THE_CONTACT_FORM.includes(id),
+        !(QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT as readonly string[]).includes(
+          id,
+        ),
     ) ?? null
   );
 }
