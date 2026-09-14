@@ -7,6 +7,7 @@ export type QuestionId =
   | "SAFETY_GLAZING_CONTEXT"
   | "OPENING_COUNT"
   | "ACCESS_HEIGHT"
+  | "FIXED_VS_OPERABLE"
   | "TEMPORARY_SECURING";
 
 export interface BankedQuestion {
@@ -92,6 +93,19 @@ export const QUESTION_BANK: Record<QuestionId, BankedQuestion> = {
       "Second floor or higher",
     ],
   },
+  FIXED_VS_OPERABLE: {
+    id: "FIXED_VS_OPERABLE",
+    prompt: "Does that window or door open, or is the glass fixed in place?",
+    helper:
+      "A fixed pane usually has to be worked from outside as well as inside, which changes the access we need to bring.",
+    answerKind: "choice",
+    choices: [
+      "It opens",
+      "It is fixed and does not open",
+      "One part opens, one part is fixed",
+      "Not sure",
+    ],
+  },
   TEMPORARY_SECURING: {
     id: "TEMPORARY_SECURING",
     prompt: "Is the opening secure right now, or is it open to the weather?",
@@ -107,12 +121,32 @@ export const QUESTION_BANK: Record<QuestionId, BankedQuestion> = {
 
 export const MAX_QUESTIONS_PER_SESSION = 4;
 
+export const FORM_ANSWERED_QUESTION_IDS: readonly QuestionId[] = [
+  "CONTACT_DETAILS",
+  "SERVICE_ADDRESS",
+];
+
 export const OPENING_QUESTION_SEQUENCE: readonly QuestionId[] = [
   "CONTACT_DETAILS",
   "SERVICE_ADDRESS",
   "WHAT_HAPPENED",
   "SAFETY_GLAZING_CONTEXT",
+  "ACCESS_HEIGHT",
+  "FIXED_VS_OPERABLE",
 ];
+
+export const DORMANT_QUESTION_IDS: readonly QuestionId[] = [
+  "PANE_COUNT",
+  "GLASS_TYPE_MARKING",
+  "OPENING_COUNT",
+  "TEMPORARY_SECURING",
+];
+
+export function conversationalQuestionsIn(
+  sequence: readonly QuestionId[],
+): QuestionId[] {
+  return sequence.filter((id) => !FORM_ANSWERED_QUESTION_IDS.includes(id));
+}
 
 export const SAFETY_GLAZING_QUESTION_ID: QuestionId = "SAFETY_GLAZING_CONTEXT";
 

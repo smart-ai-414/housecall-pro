@@ -33,12 +33,34 @@ import {
 } from "../modules/tenancy/territory-routing";
 import { assessIntakeCompleteness } from "../modules/intake/completion";
 import {
+  conversationalQuestionsIn,
+  DORMANT_QUESTION_IDS,
+  MAX_QUESTIONS_PER_SESSION,
   OPENING_QUESTION_SEQUENCE,
   QUESTION_BANK,
   SAFETY_GLAZING_QUESTION_ID,
   safetyGlazingMayBeRequired,
 } from "../modules/intake/question-bank";
-import { buildLineItemsFromCatalogueMatches } from "../modules/housecall-pro/estimates";
+import {
+  buildLineItemsFromCatalogueMatches,
+  PLACEHOLDER_LINE_ITEM_NAME,
+} from "../modules/housecall-pro/estimates";
+import {
+  NON_CATALOGUE_TEMPLATE,
+  renderNonCatalogueTemplate,
+} from "../modules/estimates/non-catalogue-template";
+import {
+  classificationIsUsable,
+  classificationResultSchema,
+  dimensionResultSchema,
+  squareFootageOf,
+} from "../modules/perception/schemas";
+import { resolveProviderName } from "../modules/perception/provider-registry";
+import {
+  classify,
+  PERCEPTION_MAX_ATTEMPTS,
+} from "../modules/perception/perception-service";
+import type { PerceptionProvider } from "../modules/perception/types";
 
 let failures = 0;
 
@@ -429,6 +451,257 @@ async function main() {
     safetyGlazingMayBeRequired("it is above the kitchen sink") === true,
   );
 
+  console.log("\nPERCEPTION SCHEMAS (closed sets, unknown always allowed)");
+
+  check(
+    "A well-formed classification parses",
+    classificationResultSchema.safeParse({
+      assetType: "RESIDENTIAL_WINDOW",
+      issueType: "CRACKED",
+      confidence: 0.82,
+    }).success,
+  );
+  check(
+    "UNKNOWN is a valid answer, not an error",
+    classificationResultSchema.safeParse({
+      assetType: "UNKNOWN",
+      issueType: "UNKNOWN",
+      confidence: 0.1,
+    }).success,
+  );
+  check(
+    "An invented asset type is rejected",
+    !classificationResultSchema.safeParse({
+      assetType: "GREENHOUSE",
+      issueType: "CRACKED",
+      confidence: 0.9,
+    }).success,
+  );
+  check(
+    "Confidence outside 0..1 is rejected",
+    !classificationResultSchema.safeParse({
+      assetType: "RESIDENTIAL_WINDOW",
+      issueType: "CRACKED",
+      confidence: 1.4,
+    }).success,
+  );
+  check(
+    "Frame material defaults to UNKNOWN when absent",
+    classificationResultSchema.parse({
+      assetType: "RESIDENTIAL_WINDOW",
+      issueType: "CRACKED",
+      confidence: 0.8,
+    }).frameMaterialHint === "UNKNOWN",
+  );
+  check(
+    "A dimension estimate without a scale reference is rejected",
+    !dimensionResultSchema.safeParse({
+      status: "ESTIMATED",
+      widthInches: 36,
+      heightInches: 60,
+      confidence: 0.8,
+    }).success,
+  );
+  check(
+    "NO_REFERENCE_FOUND needs no measurements",
+    dimensionResultSchema.safeParse({ status: "NO_REFERENCE_FOUND" }).success,
+  );
+  check(
+    "Square footage is derived, never taken from the model",
+    squareFootageOf(36, 48) === 12,
+    `${squareFootageOf(36, 48)} sq ft from 36x48in`,
+  );
+  check(
+    "An unknown classification is never usable for pricing",
+    !classificationIsUsable({
+      assetType: "UNKNOWN",
+      issueType: "CRACKED",
+      frameMaterialHint: "UNKNOWN",
+      confidence: 0.99,
+    }),
+  );
+  check(
+    "A low-confidence classification is never usable for pricing",
+    !classificationIsUsable({
+      assetType: "RESIDENTIAL_WINDOW",
+      issueType: "CRACKED",
+      frameMaterialHint: "UNKNOWN",
+      confidence: 0.4,
+    }),
+  );
+
+  console.log("\nPERCEPTION ROUTING (plan 5.1: config, not code changes)");
+
+  check(
+    "Defaults to Gemini, as the plan specifies",
+    resolveProviderName("classify", {}) === "gemini",
+  );
+  check(
+    "One variable reroutes every function",
+    resolveProviderName("classify", { PERCEPTION_PROVIDER: "anthropic" }) ===
+      "anthropic",
+  );
+  check(
+    "A single function can be routed on its own",
+    resolveProviderName("estimateDimensions", {
+      PERCEPTION_PROVIDER: "gemini",
+      PERCEPTION_PROVIDER_DIMENSIONS: "anthropic",
+    }) === "anthropic" &&
+      resolveProviderName("classify", {
+        PERCEPTION_PROVIDER: "gemini",
+        PERCEPTION_PROVIDER_DIMENSIONS: "anthropic",
+      }) === "gemini",
+  );
+
+  let rejectedUnknownProvider = false;
+  try {
+    resolveProviderName("classify", { PERCEPTION_PROVIDER: "gpt4" });
+  } catch {
+    rejectedUnknownProvider = true;
+  }
+  check("An unknown provider name is refused", rejectedUnknownProvider);
+
+  console.log("\nPERCEPTION FAIL-THROUGH (a failure must still leave a lead)");
+
+  const perceptionInput = {
+    photos: [
+      { label: "inside", contentType: "image/jpeg", data: Buffer.from("x") },
+    ],
+    customerDescription: "cracked pane",
+  };
+
+  let attempts = 0;
+  const alwaysFails = {
+    name: "always-fails",
+    classify: async () => {
+      attempts += 1;
+      throw new Error("provider exploded");
+    },
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+    assessPhotoQuality: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  const failed = await classify(perceptionInput, { provider: alwaysFails });
+
+  check(
+    "A failing provider never throws at the caller",
+    failed.status === "FAILED",
+  );
+  check(
+    "It retries exactly once, then gives up",
+    attempts === PERCEPTION_MAX_ATTEMPTS && PERCEPTION_MAX_ATTEMPTS === 2,
+    `${attempts} attempts`,
+  );
+  check(
+    "The reason is carried for the human queue",
+    failed.status === "FAILED" && failed.reason.includes("provider exploded"),
+  );
+
+  const hangs = {
+    name: "hangs",
+    classify: () => new Promise(() => {}),
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+    assessPhotoQuality: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  const timedOut = await classify(perceptionInput, {
+    provider: hangs,
+    timeoutMs: 50,
+  });
+
+  check(
+    "A hung provider times out rather than hanging the request",
+    timedOut.status === "FAILED",
+  );
+
+  const succeeds = {
+    name: "succeeds",
+    classify: async () => ({
+      assetType: "RESIDENTIAL_WINDOW" as const,
+      issueType: "CRACKED" as const,
+      frameMaterialHint: "UNKNOWN" as const,
+      confidence: 0.9,
+    }),
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+    assessPhotoQuality: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  const ok = await classify(perceptionInput, { provider: succeeds });
+  check(
+    "A working provider returns on the first attempt",
+    ok.status === "OK" && ok.attempts === 1,
+  );
+
+  console.log("\nQUESTION BANK (plan 3.4 equipment and access)");
+
+  const asked = conversationalQuestionsIn(OPENING_QUESTION_SEQUENCE);
+
+  check(
+    "Storey is asked — the plan's highest-value question",
+    asked.includes("ACCESS_HEIGHT"),
+  );
+  check("Fixed versus operable is asked", asked.includes("FIXED_VS_OPERABLE"));
+  check(
+    "Conversational questions stay within the plan's cap",
+    asked.length <= MAX_QUESTIONS_PER_SESSION,
+    `${asked.length} asked, cap ${MAX_QUESTIONS_PER_SESSION}`,
+  );
+  check(
+    "Every scheduled question exists in the bank",
+    OPENING_QUESTION_SEQUENCE.every((id) => id in QUESTION_BANK),
+  );
+  check(
+    "Dormant questions are defined but not yet scheduled",
+    DORMANT_QUESTION_IDS.every(
+      (id) => id in QUESTION_BANK && !OPENING_QUESTION_SEQUENCE.includes(id),
+    ),
+    DORMANT_QUESTION_IDS.join(", "),
+  );
+  check(
+    "Every question in the bank is either scheduled or dormant",
+    Object.keys(QUESTION_BANK).every(
+      (id) =>
+        OPENING_QUESTION_SEQUENCE.includes(id as never) ||
+        DORMANT_QUESTION_IDS.includes(id as never),
+    ),
+  );
+
+  console.log("\nNON-CATALOGUE PRICING TEMPLATE (reviewer reference only)");
+
+  const template = renderNonCatalogueTemplate();
+  const templateText = template.join("\n");
+
+  check(
+    "All four template lines are reproduced",
+    NON_CATALOGUE_TEMPLATE.length === 4 &&
+      ["Service call", "Material", "Labour", "Miscellaneous"].every((label) =>
+        templateText.includes(label),
+      ),
+  );
+  check(
+    "The plan's figures are intact",
+    templateText.includes("$105") &&
+      templateText.includes("x 1.5") &&
+      templateText.includes("$75") &&
+      templateText.includes("$50 to $100"),
+  );
+  check(
+    "It states the assistant does not apply it",
+    templateText.toLowerCase().includes("does not apply"),
+  );
+
   console.log("\nESTIMATE LINE ITEMS (Housecall Pro shape)");
 
   const lineItems = buildLineItemsFromCatalogueMatches([
@@ -462,6 +735,29 @@ async function main() {
     "Additional openings are labelled for the reviewer",
     lineItems[1].description === "Opening 2",
   );
+  const placeholderOnly = buildLineItemsFromCatalogueMatches([]);
+
+  check(
+    "An unmatched job still gets exactly one line item",
+    placeholderOnly.length === 1,
+    `${placeholderOnly.length} emitted`,
+  );
+  check(
+    "That line is the placeholder",
+    placeholderOnly[0].name === PLACEHOLDER_LINE_ITEM_NAME,
+  );
+  check(
+    "The placeholder carries no price and no service item",
+    !("unit_price" in placeholderOnly[0]) &&
+      !("amount" in placeholderOnly[0]) &&
+      !("unit_cost" in placeholderOnly[0]) &&
+      placeholderOnly[0].service_item_id === undefined,
+  );
+  check(
+    "The placeholder tells the reviewer to replace it",
+    (placeholderOnly[0].description ?? "").toLowerCase().includes("replace"),
+  );
+
   check(
     "Line items are emitted in a stable order",
     lineItems[0].order_index === 0 && lineItems[1].order_index === 1,

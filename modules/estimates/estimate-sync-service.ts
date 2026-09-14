@@ -8,6 +8,7 @@ import {
   buildLineItemsFromCatalogueMatches,
   createUnsentEstimate,
 } from "@/modules/housecall-pro/estimates";
+import { renderNonCatalogueTemplate } from "@/modules/estimates/non-catalogue-template";
 import { createClientForLocation } from "@/modules/housecall-pro/location-client";
 import { resolveCustomer } from "@/modules/housecall-pro/customers";
 import {
@@ -62,6 +63,7 @@ interface StructuredNotesHeader {
     scaleReference: string | null;
     customerConfirmed: boolean;
   } | null;
+  pricingTemplateApplies: boolean;
   customerSaid: { question: string; answer: string }[];
   safetyGlazing: {
     answered: boolean;
@@ -142,6 +144,10 @@ function renderNotes(header: StructuredNotesHeader): string {
       lines.push(`  - ${item}`);
     }
     lines.push("");
+  }
+
+  if (header.pricingTemplateApplies) {
+    lines.push(...renderNonCatalogueTemplate(), "");
   }
 
   if (header.photos.length > 0) {
@@ -336,7 +342,7 @@ export async function syncSessionToHousecallPro({
     }
     if (session.catalogueMatches.length === 0) {
       reviewerMustCheck.push(
-        "No catalogue items were matched. This estimate has no line items and must be built by hand.",
+        "No catalogue item was matched. The single line item is a placeholder with no price — replace it from the price book.",
       );
     }
     if (session.catalogueMatches.some((m) => m.needsReviewerCompletion)) {
@@ -371,6 +377,7 @@ export async function syncSessionToHousecallPro({
         classificationConfidence: classification?.confidenceScore ?? null,
         lowConfidence: classification?.isLowConfidence ?? false,
       },
+      pricingTemplateApplies: session.catalogueMatches.length === 0,
       customerSaid,
       safetyGlazing: {
         answered: safetyGlazingAnswer !== null,

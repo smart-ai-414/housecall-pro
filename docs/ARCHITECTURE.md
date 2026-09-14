@@ -635,6 +635,22 @@ from a fixed bank (`modules/intake/question-bank.ts`) that the model selects
 from; it does not compose them. Stored history is capped at 200 messages so a
 single session cannot grow a JSONB column without bound.
 
+The bank is split three ways. `FORM_ANSWERED_QUESTION_IDS` are satisfied by the
+contact form. `OPENING_QUESTION_SEQUENCE` is what every customer is actually
+asked, and `conversationalQuestionsIn` counts only the ones that cost a message
+— currently four, exactly the plan's cap, covering what happened, safety
+glazing, storey and fixed-versus-operable. The last two are what plan 3.4 needs
+for the equipment line, and the catalogue carries a `scaffold rental` item to
+price it against.
+
+`DORMANT_QUESTION_IDS` are written and ready but deliberately unscheduled:
+pane count, glass marking, opening count, temporary securing. Scheduling them
+now would spend the question budget before there is any model to decide which
+of them a given job actually needs. Phase 4 selects from the bank; until then
+adding more questions would lower completion rates for no gain. `npm run verify`
+asserts every question is in exactly one of the two lists, so a new one cannot
+be added and quietly forgotten.
+
 ## Completion
 
 A session syncs to Housecall Pro the moment it has everything, not when the
@@ -702,6 +718,92 @@ It also carries **what the customer actually said**. Answers are stored against
 their question id in `conversation_state.collected.answers`, not left to be
 reconstructed from the transcript, so the notes can quote the customer verbatim
 under the question they were answering.
+
+## The perception layer
+
+`modules/perception/` is the AI layer the plan's 5.1 asks for: a service
+interface whose functions route to providers **by configuration, not code
+changes**. `PERCEPTION_PROVIDER` sets them all; `PERCEPTION_PROVIDER_DIMENSIONS`
+and its siblings override one at a time, so the plan's "escalate spatial
+reasoning to a stronger model" is an env change rather than a deploy.
+
+Gemini is the default and the only registered provider today, per the plan and
+the client's existing key.
+
+**There is no `matchCatalogue` method, and that is deliberate.** The plan lists
+one in 5.1 but its own Phase 3 section says catalogue matching is "purely
+deterministic code. No language model anywhere in the pricing path." Those two
+cannot both hold, and the governing principle settles it: the model classifies
+and measures, deterministic code prices. Nothing here returns a catalogue item
+or a currency figure.
+
+For the same reason the prompts do **not** embed the service catalogue. The plan
+suggested embedding it as the closed set, but the model never selects an item,
+so the only closed sets it needs are the asset and issue enumerations. Feeding
+it 120 item names would invite it to reach for one.
+
+### The model's output is never trusted as typed
+
+Every response is parsed by Zod (`schemas.ts`) before anything downstream sees
+it. The enumerations are closed, `UNKNOWN` is always a member, and the prompts
+say plainly that unknown beats a guess. Confidence outside 0..1 is rejected
+rather than clamped, because a model returning 1.4 is a model that has
+misunderstood the task.
+
+Dimensions are a discriminated union: either `ESTIMATED` with a scale reference
+attached, or `NO_REFERENCE_FOUND`. **An estimate without a reference cannot be
+represented**, so the schema itself enforces the plan's ranked-reference rule.
+Square footage is computed from the returned inches by `squareFootageOf`, never
+taken from the model.
+
+`classificationIsUsable` is the gate to pricing: unknown asset type, unknown
+issue type, or confidence below the threshold all disqualify. That threshold is
+`PROVISIONAL_LOW_CONFIDENCE_THRESHOLD` and is named provisional on purpose — the
+plan is explicit that real thresholds come from Phase 2 calibration, not from a
+number someone picked.
+
+### Failure leaves a lead, never an exception
+
+`perception-service.ts` wraps every call in a hard timeout and exactly one
+retry, then returns a `FAILED` outcome carrying the reason. It never throws at
+the caller, because the caller's job is to keep the lead alive and hand it to a
+human.
+
+The timeout clears its own timer rather than calling `unref()`. An unref'd timer
+cannot hold the event loop open, so when the provider hangs and nothing else is
+pending the process can exit before the timeout ever fires — the timeout would
+silently do nothing. `npm run verify` covers this with a provider that never
+resolves.
+
+## The placeholder line item
+
+An estimate is never created with an empty option. Until Phase 3 matches a
+catalogue item there is nothing legitimate to put on the line, so
+`buildLineItemsFromCatalogueMatches` returns a single placeholder when there are
+no matches: a name, a quantity of one, and a description telling the reviewer to
+replace it.
+
+It carries **no `service_item_id` and no currency field of any kind**. Housecall
+Pro fills `unit_price` with its own zero; the assistant never proposes a figure,
+not even zero, because the moment it does the price stops coming from the price
+book. `npm run verify` asserts the placeholder is free of `unit_price`, `amount`
+and `unit_cost`.
+
+The plan called for this in Phase 1 and it was missed. An option with no line
+items is also the most likely shape for Housecall Pro to reject outright.
+
+## Pricing template for non-catalogue work
+
+`modules/estimates/non-catalogue-template.ts` reproduces the shop's own manual
+formula — $105 service call, material x1.5, $75/hr labour, $50-100 misc — in the
+estimate notes whenever no catalogue item matched. In Phase 1 that is every job;
+from Phase 3 it will appear only on genuinely unmatched work, with no code
+change, because it keys off `catalogueMatches.length`.
+
+This is reference text for a person, not a calculation. Nothing computes with
+those numbers and no amount derived from them is stored, which is why the block
+says so in the notes themselves. If the shop changes its rates, this file is the
+one place to update and it will drift silently until someone does.
 
 ## Safety glazing
 

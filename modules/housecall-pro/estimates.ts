@@ -104,6 +104,21 @@ export interface PhotoReference {
   signedUrl: string;
 }
 
+export const PLACEHOLDER_LINE_ITEM_NAME = "Glass service — awaiting pricing";
+
+export const PLACEHOLDER_LINE_ITEM_DESCRIPTION =
+  "Placeholder only. Replace with the matching price book item. The customer's photos and answers are in the notes below.";
+
+export function buildPlaceholderLineItem(): HousecallProEstimateLineItem {
+  return {
+    name: PLACEHOLDER_LINE_ITEM_NAME,
+    description: PLACEHOLDER_LINE_ITEM_DESCRIPTION,
+    quantity: 1,
+    kind: "labor",
+    order_index: 0,
+  };
+}
+
 export function buildLineItemsFromCatalogueMatches(
   matches: readonly {
     housecallProServiceId: string;
@@ -114,6 +129,8 @@ export function buildLineItemsFromCatalogueMatches(
     openingIndex: number | null;
   }[],
 ): HousecallProEstimateLineItem[] {
+  if (matches.length === 0) return [buildPlaceholderLineItem()];
+
   return matches.map((match, index) => ({
     service_item_id: match.housecallProServiceId,
     name: match.serviceName,

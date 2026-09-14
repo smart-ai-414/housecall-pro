@@ -125,6 +125,19 @@ export function publicAppUrl(): string | null {
   return parsed.success ? withoutTrailingSlash(parsed.data) : null;
 }
 
+const geminiSchema = z.object({
+  GEMINI_API_KEY: z.string().min(1, "required"),
+  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+});
+
+export const geminiEnv = memoizedPerProcess(() =>
+  parseGroup("Gemini", geminiSchema),
+);
+
+export function isGeminiConfigured(): boolean {
+  return geminiSchema.safeParse(process.env).success;
+}
+
 const anthropicSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, "required"),
 });
