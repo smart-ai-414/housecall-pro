@@ -28,6 +28,8 @@ import {
   parseConversationState,
   type JsonObject,
 } from "@/modules/intake/conversation-state";
+import { catalogueSnapshotExportedAt } from "@/modules/pricing/catalogue-snapshot";
+import { ensureCatalogueMatches } from "@/modules/pricing/pricing-service";
 import {
   isQuestionId,
   QUESTION_BANK,
@@ -115,6 +117,8 @@ export async function syncSessionToHousecallPro({
   sessionId: string;
   reason: SyncReason;
 }): Promise<SyncOutcome> {
+  const catalogueOutcome = await ensureCatalogueMatches(sessionId);
+
   const session = await prisma.customerSession.findUnique({
     where: { id: sessionId },
     select: {
@@ -164,6 +168,7 @@ export async function syncSessionToHousecallPro({
         },
       },
       catalogueMatches: {
+        orderBy: { isBaseItem: "desc" },
         select: {
           housecallProServiceId: true,
           serviceName: true,
@@ -171,6 +176,7 @@ export async function syncSessionToHousecallPro({
           isBaseItem: true,
           isAdditionalOpening: true,
           openingIndex: true,
+          matchConfidence: true,
           needsReviewerCompletion: true,
         },
       },
@@ -307,6 +313,9 @@ export async function syncSessionToHousecallPro({
         "No catalogue item was matched. The single line item is a placeholder with no price — replace it from the price book.",
       );
     }
+    if (!session.shouldBypassPricing) {
+      reviewerMustCheck.push(...catalogueOutcome.reasons);
+    }
     if (session.catalogueMatches.some((m) => m.needsReviewerCompletion)) {
       reviewerMustCheck.push(
         "At least one line item had no good catalogue match.",
@@ -350,6 +359,14 @@ export async function syncSessionToHousecallPro({
           : [],
       },
       pricingTemplateApplies: session.catalogueMatches.length === 0,
+      catalogue: {
+        snapshotExportedAt: catalogueSnapshotExportedAt().toISOString(),
+        matches: session.catalogueMatches.map((match) => ({
+          serviceName: match.serviceName,
+          matchConfidence: match.matchConfidence,
+          isBaseItem: match.isBaseItem,
+        })),
+      },
       customerSaid,
       safetyGlazing: {
         answered: safetyGlazingAnswer !== null,
@@ -414,6 +431,7 @@ export async function syncSessionToHousecallPro({
       locationName,
       photoCount: photos.length,
       lineItemCount: session.catalogueMatches.length,
+      catalogueMatchStatus: catalogueOutcome.status,
     });
 
     console.info(

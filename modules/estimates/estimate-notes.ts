@@ -37,6 +37,14 @@ export interface StructuredNotesHeader {
     reasons: string[];
   };
   pricingTemplateApplies: boolean;
+  catalogue?: {
+    snapshotExportedAt: string;
+    matches: {
+      serviceName: string;
+      matchConfidence: number;
+      isBaseItem: boolean;
+    }[];
+  };
   customerSaid: { question: string; answer: string }[];
   safetyGlazing: {
     answered: boolean;
@@ -130,6 +138,28 @@ function renderMeasurements(header: StructuredNotesHeader): string[] {
   return lines;
 }
 
+function renderCatalogue(header: StructuredNotesHeader): string[] {
+  const catalogue = header.catalogue;
+
+  if (!catalogue || catalogue.matches.length === 0) return [];
+
+  const lines = ["PRICE BOOK MATCH (proposed for you, never priced here):"];
+
+  for (const match of catalogue.matches) {
+    lines.push(
+      `  ${match.isBaseItem ? "Base" : "Glass"}: ${match.serviceName}` +
+        ` - match confidence ${Math.round(match.matchConfidence * 100)}%`,
+    );
+  }
+
+  lines.push(
+    `  Matched against the catalogue exported ${catalogue.snapshotExportedAt.slice(0, 10)}.`,
+    "  Every amount comes from the Housecall Pro price book. Nothing above carries one.",
+  );
+
+  return lines;
+}
+
 function renderSafetyGlazing(header: StructuredNotesHeader): string[] {
   const { safetyGlazing } = header;
 
@@ -185,6 +215,9 @@ export function renderNotes(header: StructuredNotesHeader): string {
 
   lines.push(...renderObserved(header), "");
   lines.push(...renderMeasurements(header), "");
+
+  const catalogueLines = renderCatalogue(header);
+  if (catalogueLines.length > 0) lines.push(...catalogueLines, "");
 
   if (header.customerSaid.length > 0) {
     lines.push("WHAT THE CUSTOMER SAID:");

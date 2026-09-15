@@ -40,8 +40,20 @@ export function readDashboardMetrics(): Promise<
         where: { status: { in: [...OPEN_SESSION_STATUSES] } },
       }),
       prisma.estimate.count({ where: { status: "CREATED_UNSENT" } }),
-      prisma.catalogueMatch.count({
-        where: { needsReviewerCompletion: true },
+      prisma.estimate.count({
+        where: {
+          status: "CREATED_UNSENT",
+          OR: [
+            { session: { catalogueMatches: { none: {} } } },
+            {
+              session: {
+                catalogueMatches: {
+                  some: { needsReviewerCompletion: true },
+                },
+              },
+            },
+          ],
+        },
       }),
       prisma.estimate.count({ where: { status: "SYNC_FAILED" } }),
       prisma.customerSession.count({ where: { status: "SYNCED" } }),

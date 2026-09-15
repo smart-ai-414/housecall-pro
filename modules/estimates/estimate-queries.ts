@@ -59,6 +59,7 @@ export function listEstimateQueue(): Promise<DatabaseRead<EstimateQueueRow[]>> {
               select: { id: true },
               take: 1,
             },
+            _count: { select: { catalogueMatches: true } },
             classifications: {
               orderBy: { createdAt: "desc" },
               take: 1,
@@ -97,7 +98,9 @@ export function listEstimateQueue(): Promise<DatabaseRead<EstimateQueueRow[]>> {
         customerName: estimate.session.customerName,
         serviceAddress: estimate.session.serviceAddress,
         locationName: estimate.session.franchiseLocation?.name ?? null,
-        needsWorkByHand: estimate.session.catalogueMatches.length > 0,
+        needsWorkByHand:
+          estimate.session._count.catalogueMatches === 0 ||
+          estimate.session.catalogueMatches.length > 0,
         pricingBypassed: estimate.session.shouldBypassPricing,
         observation: classification
           ? {

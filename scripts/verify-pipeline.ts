@@ -67,6 +67,18 @@ import {
   dimensionResultSchema,
   squareFootageOf,
 } from "../modules/perception/schemas";
+import {
+  ladderFor,
+  MINIMUM_SIGHTINGS_TO_MATCH,
+  SERVICE_FAMILIES,
+} from "../modules/pricing/catalogue-families";
+import { matchCatalogue } from "../modules/pricing/catalogue-matcher";
+import { ASSET_PRICING_RULES } from "../modules/pricing/matching-rules";
+import {
+  catalogueSnapshotExportedAt,
+  loadCatalogueSnapshot,
+} from "../modules/pricing/catalogue-snapshot";
+import { assetTypeSchema } from "../modules/perception/schemas";
 import { resolveProviderName } from "../modules/perception/provider-registry";
 import {
   classify,
@@ -1010,6 +1022,242 @@ async function main() {
     "Line items are emitted in a stable order",
     lineItems[0].order_index === 0 && lineItems[1].order_index === 1,
     "Housecall Pro discards order_index on create; this asserts our own output",
+  );
+
+  console.log(
+    "\nCATALOGUE MATCHING (deterministic, no model in the pricing path)",
+  );
+
+  const snapshot = loadCatalogueSnapshot();
+
+  check(
+    "The catalogue snapshot parses and carries banded items",
+    snapshot.squareFootageBanded.length > 0,
+    `${snapshot.squareFootageBanded.length} banded of ${snapshot.allServiceItems.length} items`,
+  );
+  check(
+    "The snapshot records no price field of any kind",
+    JSON.stringify(snapshot).match(
+      /"(unit_price|amount|total|price|cost)"/i,
+    ) === null,
+  );
+
+  const residentialLadder = ladderFor("RESIDENTIAL");
+
+  check(
+    "The residential ladder is the one the price book actually carries",
+    residentialLadder.map((rung) => rung.maximumSquareFeet).join(",") ===
+      "7,10,12,18,25",
+    residentialLadder.map((rung) => rung.maximumSquareFeet).join(", "),
+  );
+  check(
+    "Every rung is a distinct catalogue id",
+    new Set(residentialLadder.map((rung) => rung.serviceItemId)).size ===
+      residentialLadder.length,
+  );
+  check(
+    "A single-sighting item never becomes a rung",
+    SERVICE_FAMILIES.every((family) =>
+      ladderFor(family).every(
+        (rung) => rung.timesSeen >= MINIMUM_SIGHTINGS_TO_MATCH,
+      ),
+    ),
+    `minimum ${MINIMUM_SIGHTINGS_TO_MATCH} sightings`,
+  );
+  check(
+    "The sliding door ladder drops the lone blind-inside long-lead item",
+    ladderFor("SLIDING_DOOR").every((rung) => rung.maximumSquareFeet !== 18),
+  );
+
+  check(
+    "Every asset type the model can return has a pricing rule",
+    assetTypeSchema.options.every(
+      (assetType) => ASSET_PRICING_RULES[assetType] !== undefined,
+    ),
+  );
+  check(
+    "Every unmatchable asset type explains itself to the reviewer",
+    Object.values(ASSET_PRICING_RULES).every(
+      (rule) =>
+        rule.isBandMatchable ||
+        (rule.reasonNotMatchable !== null &&
+          rule.reasonNotMatchable.length > 20),
+    ),
+  );
+
+  const residentialMatch = matchCatalogue({
+    assetType: "RESIDENTIAL_WINDOW",
+    squareFeet: 9,
+    dimensionSource: "CUSTOMER_MEASURED",
+    shouldBypassPricing: false,
+  });
+
+  check(
+    "A residential window matches the smallest band that covers it",
+    residentialMatch.status === "MATCHED" &&
+      residentialMatch.matches.some((match) =>
+        match.serviceName.includes("10"),
+      ),
+    residentialMatch.matches.map((match) => match.serviceName).join(" + "),
+  );
+  check(
+    "The service call is proposed once, as the base item",
+    residentialMatch.matches.filter((match) => match.isBaseItem).length === 1,
+  );
+  check(
+    "No proposed match carries a price of any kind",
+    residentialMatch.matches.every(
+      (match) =>
+        !("unitPrice" in match) &&
+        !("amount" in match) &&
+        !("price" in match) &&
+        !("total" in match),
+    ),
+  );
+  check(
+    "A measurement the customer took is not second-guessed at the band edge",
+    matchCatalogue({
+      assetType: "RESIDENTIAL_WINDOW",
+      squareFeet: 12,
+      dimensionSource: "CUSTOMER_MEASURED",
+      shouldBypassPricing: false,
+    }).reasons.length === 0,
+  );
+
+  const borderline = matchCatalogue({
+    assetType: "RESIDENTIAL_WINDOW",
+    squareFeet: 12,
+    dimensionSource: "CUSTOMER_CONFIRMED",
+    shouldBypassPricing: false,
+  });
+
+  check(
+    "An estimate sitting on a band edge warns the reviewer",
+    borderline.status === "MATCHED" && borderline.reasons.length > 0,
+  );
+  check(
+    "That warning costs the match its confidence",
+    borderline.matches
+      .filter((match) => !match.isBaseItem)
+      .every((match) => match.matchConfidence < 0.7),
+  );
+
+  const unconfirmed = matchCatalogue({
+    assetType: "RESIDENTIAL_WINDOW",
+    squareFeet: 9,
+    dimensionSource: "UNCONFIRMED",
+    shouldBypassPricing: false,
+  });
+
+  check(
+    "An unconfirmed measurement lowers the match confidence",
+    unconfirmed.matches
+      .filter((match) => !match.isBaseItem)
+      .every((match) => match.matchConfidence < 0.9),
+  );
+
+  const offLadder = matchCatalogue({
+    assetType: "RESIDENTIAL_WINDOW",
+    squareFeet: 60,
+    dimensionSource: "CUSTOMER_MEASURED",
+    shouldBypassPricing: false,
+  });
+
+  check(
+    "An opening past the top of the ladder is not force-fitted",
+    offLadder.status === "NO_MATCH" && offLadder.matches.length === 0,
+  );
+  check(
+    "It says why, in words a reviewer can act on",
+    offLadder.reasons.some((reason) => reason.includes("25 sq ft")),
+  );
+
+  check(
+    "Commercial storefront is never band-matched from a photograph",
+    matchCatalogue({
+      assetType: "COMMERCIAL_STOREFRONT",
+      squareFeet: 20,
+      dimensionSource: "CUSTOMER_MEASURED",
+      shouldBypassPricing: false,
+    }).status === "NO_MATCH",
+    "bands sit 1.4% apart per axis",
+  );
+  check(
+    "Shower glass is never band-matched",
+    matchCatalogue({
+      assetType: "SHOWER_GLASS",
+      squareFeet: 18,
+      dimensionSource: "CUSTOMER_MEASURED",
+      shouldBypassPricing: false,
+    }).status === "NO_MATCH",
+    "priced by configuration, not square footage",
+  );
+  check(
+    "A bypassed session is never matched at all",
+    matchCatalogue({
+      assetType: "RESIDENTIAL_WINDOW",
+      squareFeet: 9,
+      dimensionSource: "CUSTOMER_MEASURED",
+      shouldBypassPricing: true,
+    }).status === "BYPASSED",
+  );
+  check(
+    "An unclassified session is never matched",
+    matchCatalogue({
+      assetType: null,
+      squareFeet: 9,
+      dimensionSource: "CUSTOMER_MEASURED",
+      shouldBypassPricing: false,
+    }).status === "NO_MATCH",
+  );
+
+  const repeatedRuns = Array.from({ length: 5 }, () =>
+    JSON.stringify(
+      matchCatalogue({
+        assetType: "RESIDENTIAL_WINDOW",
+        squareFeet: 11.3,
+        dimensionSource: "CUSTOMER_CONFIRMED",
+        shouldBypassPricing: false,
+      }),
+    ),
+  );
+
+  check(
+    "The same opening always produces the same match",
+    new Set(repeatedRuns).size === 1,
+    "no model anywhere in the pricing path",
+  );
+
+  const catalogueNotes = renderNotes({
+    ...notesHeader,
+    catalogue: {
+      snapshotExportedAt: catalogueSnapshotExportedAt().toISOString(),
+      matches: residentialMatch.matches.map((match) => ({
+        serviceName: match.serviceName,
+        matchConfidence: match.matchConfidence,
+        isBaseItem: match.isBaseItem,
+      })),
+    },
+  });
+
+  check(
+    "The reviewer is told which price book items were proposed",
+    catalogueNotes.includes("PRICE BOOK MATCH"),
+  );
+  check(
+    "The notes date the catalogue the match came from",
+    catalogueNotes.includes(
+      catalogueSnapshotExportedAt().toISOString().slice(0, 10),
+    ),
+  );
+  check(
+    "The match block still states no price",
+    !/\$\d/.test(
+      catalogueNotes.slice(
+        catalogueNotes.indexOf("PRICE BOOK MATCH"),
+        catalogueNotes.indexOf("SAFETY GLAZING"),
+      ),
+    ),
   );
 
   console.log(

@@ -186,12 +186,19 @@ Phase numbering follows the implementation plan (Phase 0 through Phase 4).
   and the reviewer correction log behind `npm run accuracy`. Two exit criteria
   are operational and still open: 30 real reviewed submissions, and whether
   Gemini is reachable from production.
-- **Phase 3, pricing** — catalogue matching and gap analysis. Not built.
+- **Phase 3, pricing** — built. A size ladder derived from the catalogue
+  snapshot, a deterministic rules table with no model anywhere in the pricing
+  path, band selection from the confirmed measurement, and a refusal to match
+  what a photograph cannot settle: commercial storefront, shower glass, mirrors,
+  door glass, and any opening past the top of its ladder. Those sync with the
+  placeholder line and an explanation instead of the nearest wrong item. One
+  exit criterion is open: it has not yet run on a real session, because
+  perception has not yet produced a classification anywhere.
 - **Phase 4, conversation** — adaptive questioning and multi-opening
   decomposition. Not built.
 
-The schema and module boundaries for phases 3–4 already exist; those tables are
-simply unpopulated.
+The schema and module boundaries for Phase 4 already exist; those columns
+(`is_additional_opening`, `opening_index`) are simply unused.
 
 **Gemini is blocked from this development machine.** `npm run perception:probe`
 returns `400 FAILED_PRECONDITION — User location is not supported for the API
@@ -199,7 +206,13 @@ use`: a region restriction on the consumer API, not a bad key. Set
 `ANTHROPIC_API_KEY` to run perception locally, and run the probe again from the
 production host before deciding which provider ships.
 
-Phase 1 has not run end to end in any environment, because three things are
-unset: storage credentials, a franchise location carrying an API key, and
-Turnstile keys. Until storage is configured the widget runs in its no-photo
-degraded mode.
+**Nothing has run end to end in any environment yet.** Storage credentials and
+a franchise location carrying an API key are both configured now, but perception
+has produced no classification and no dimension estimate in any environment, so
+no session has ever reached catalogue matching with something to match. Setting
+`ANTHROPIC_API_KEY` and `PERCEPTION_PROVIDER=anthropic` is what unblocks that on
+this machine.
+
+Still unset: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`, and
+`PUBLIC_APP_URL` — without the last one the photo links in estimate notes expire
+within minutes.

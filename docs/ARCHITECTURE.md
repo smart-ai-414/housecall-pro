@@ -861,6 +861,114 @@ pending the process can exit before the timeout ever fires — the timeout would
 silently do nothing. `npm run verify` covers this with a provider that never
 resolves.
 
+## Catalogue matching
+
+`modules/pricing/` turns a classification and a confirmed measurement into
+Housecall Pro line items. **There is no language model anywhere in this path.**
+The same opening always produces the same match, which is what makes the result
+auditable and testable — `npm run verify` asserts it by running one input five
+times and comparing.
+
+### The ladder is derived, not typed in
+
+There is no price book endpoint, so the ladder is built at runtime from
+`catalogue-export.json` by `catalogue-families.ts`. Three rules decide what
+becomes a rung, and all three exist because the export documented the mess in
+the real data:
+
+- **Family comes from weighted name evidence, never from the canonical name.**
+  Every observed name for an id votes, weighted by how often it was seen.
+  `10 Glass replacement` reveals itself as residential only through its rarer
+  sibling `10 SqFt Residential Glass replacement`, so the most frequent name is
+  the wrong thing to read. A tie, or no family marker at all, yields no family
+  and the item is left out.
+- **An item seen fewer than twice is never a rung.** This is what keeps
+  `Replace 1 broken glass with blind inside in sliding door up to 18 SF 3-4
+weeks lead time` — one sighting, a special-condition item — from becoming the
+  18 sq ft rung of the sliding door ladder and quietly attaching a three-week
+  lead time to ordinary work.
+- **One rung per family and band**, resolved by sightings, then by id so the
+  ladder is stable across runs.
+
+What survives is exactly the ladder the export predicted: residential at 7, 10,
+12, 18 and 25 sq ft, and a single sliding-door rung at 16.
+
+### Bands are upper bounds
+
+The price book names them that way — `Glass for Sliding door up to 16 SF` — so
+the matcher picks the **smallest rung that covers** the measurement. An opening
+past the top of its ladder is not force-fitted into the largest band; it returns
+no match and says so, naming the top of the ladder the reviewer just fell off.
+
+### What is deliberately not matched
+
+`matching-rules.ts` is a table keyed by asset type, and every entry that refuses
+to match carries the sentence the reviewer reads:
+
+| Asset type              | Matched | Why not                                                        |
+| ----------------------- | ------- | -------------------------------------------------------------- |
+| `RESIDENTIAL_WINDOW`    | yes     |                                                                |
+| `SLIDING_DOOR`          | yes     |                                                                |
+| `COMMERCIAL_STOREFRONT` | no      | bands sit 1.4% apart per axis — unresolvable from a photograph |
+| `SHOWER_GLASS`          | no      | priced by configuration, not square footage                    |
+| `DOOR_GLASS`            | no      | no banded ladder exists                                        |
+| `MIRROR`                | no      | supplied and installed to size                                 |
+| `UNKNOWN`               | no      | already gated upstream                                         |
+
+Storefront is the one worth restating: the ladder exists and the matcher could
+walk it, and it refuses on purpose. No general vision model measures to 1.4% per
+axis, so that work is measured on site.
+
+### Confidence, and the band edge
+
+A match carries `matchConfidence` only. There is no price on it, because there
+is no price anywhere in this schema. Two things reduce it:
+
+- a measurement the customer never confirmed
+- a measurement sitting within 5% of either edge of its band, where a small
+  error moves the job to the neighbouring rung
+
+The second check is **skipped when the customer supplied their own
+measurement**. Landing exactly on 12 sq ft is the common case for a 3ft x 4ft
+opening, and flagging every round number the customer actually measured would
+spend the reviewer's attention on nothing. The flag is for readings that came
+off a photograph.
+
+### No match is a real outcome
+
+An unmatchable job writes **no rows at all**. That is what keeps
+`buildLineItemsFromCatalogueMatches` emitting the placeholder, keeps the
+non-catalogue pricing template appearing, and keeps the dashboard's "needs a
+quote by hand" honest — all three already key off `catalogueMatches.length`, so
+none of them needed changing. The reason travels separately, into
+`reviewerMustCheck` in the notes, so the reviewer reads _why_ nothing matched
+rather than just that nothing did.
+
+`needsReviewerCompletion` stays false throughout Phase 3. It is for a
+multi-opening job where one opening matched and another did not, which is
+Phase 4 — a single-opening job either matches or does not, and there is no
+half-matched state to record.
+
+### Where it runs, and when it stops
+
+`ensureCatalogueMatches` is called at the top of `syncSessionToHousecallPro`,
+not at intake completion, so every path that syncs — completed intake, the
+abandonment sweep, a retry — matches through the same door. It deletes and
+rewrites the session's matches each time, which makes re-running it free of
+duplicates.
+
+It refuses to touch a session whose estimate already carries a
+`housecall_pro_estimate_id`. Once the estimate exists in Housecall Pro the rows
+are the record of what was sent, and a later snapshot must not rewrite history.
+
+### The snapshot goes stale silently
+
+Matching runs against `catalogue-export.json`, which is a point-in-time
+recovery, not a live read. Nothing detects a price book edit. Two things soften
+that: the match block in the estimate notes prints the date the snapshot was
+exported, and a snapshot older than 90 days adds a line to `reviewerMustCheck`
+telling whoever is reading to re-run `npm run hcp:catalogue`.
+
 ## The placeholder line item
 
 An estimate is never created with an empty option. Until Phase 3 matches a
@@ -944,15 +1052,18 @@ Two of its exit criteria are operational rather than buildable and remain open:
 - **Whether Gemini is reachable from production.** It is not reachable from this
   development machine — see the perception layer section above.
 
+Phase 3 (pricing) is built: the ladder derived from the catalogue snapshot,
+the deterministic rules table, band selection on confirmed measurements,
+`should_bypass_pricing` honoured rather than matched around, and the
+unpriceable-job path that syncs with a placeholder and an explanation rather
+than force-fitting the nearest wrong item. See **Catalogue matching** above.
+
+One exit criterion is operational rather than buildable and remains open:
+matching has not yet run on a real session, because perception has not yet
+produced a classification in any environment.
+
 Still to come:
 
-- **Phase 3, pricing** — catalogue matching against the price book, reading the
-  classification and the confirmed dimensions that Phase 2 now produces, and
-  honouring `should_bypass_pricing` rather than matching anyway. Gap analysis
-  must use a deterministic rules table, not model judgement: auditable,
-  testable, and it will not drift when a model updates. The unpriceable-job path
-  sets `needs_reviewer_completion` and still syncs, rather than force-fitting the
-  nearest wrong item.
 - **Phase 4, conversation** — adaptive questioning within the four-question cap
   and multi-opening decomposition. The schema already supports the latter: a
   multi-opening job charges the service call and travel once (`is_base_item`)
@@ -981,3 +1092,9 @@ images and real crypto:
 - the conditional third photograph: two required up front, a close-up added only
   when requested, and a declined close-up closing the requirement rather than
   stranding the lead
+- catalogue matching end to end: that the derived residential ladder is the one
+  the price book carries, that a single-sighting item never becomes a rung, that
+  storefront and shower glass are never band-matched, that an opening past the
+  top of its ladder is not force-fitted, that a bypassed session is never
+  matched at all, and that the same opening produces the same match five runs
+  running
