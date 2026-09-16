@@ -9,14 +9,21 @@ export function StartEstimateButton({
   size = "lg",
   variant = "primary",
   label = "Get an estimate",
+  className,
 }: {
   size?: "sm" | "md" | "lg";
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "accent" | "secondary";
   label?: string;
+  className?: string;
 }) {
   return (
-    <Button size={size} variant={variant} onClick={openEstimateChat}>
-      <Camera className="size-4" aria-hidden="true" />
+    <Button
+      size={size}
+      variant={variant}
+      className={className}
+      onClick={openEstimateChat}
+    >
+      <Camera className="size-[19px]" aria-hidden="true" />
       {label}
     </Button>
   );

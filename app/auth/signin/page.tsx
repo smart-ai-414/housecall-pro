@@ -37,12 +37,12 @@ export default async function SignInPage({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+      <div className="space-y-2">
+        <h1 className="font-display text-brand-950 text-[1.625rem] font-bold tracking-[-0.018em]">
           Sign in
         </h1>
-        <p className="text-sm text-slate-600">
-          Review the intake queue and approve draft estimates.
+        <p className="text-[14.5px] leading-6 text-slate-600">
+          Review intake and keep an eye on draft estimates.
         </p>
       </div>
 

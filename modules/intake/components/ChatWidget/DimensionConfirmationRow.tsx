@@ -4,10 +4,19 @@ import { Ruler } from "lucide-react";
 import { useState } from "react";
 
 import type { DimensionConfirmationResponse } from "@/modules/intake/components/ChatWidget/useIntakeSession";
+import {
+  StreamCard,
+  StreamCardNote,
+} from "@/modules/intake/components/ChatWidget/StreamCard";
 import type { DimensionConfirmationPrompt } from "@/modules/intake/types";
 
 function roundedInches(inches: number): string {
   return String(Math.round(inches));
+}
+
+function approximateFeet(widthInches: number, heightInches: number): string {
+  const toFeet = (inches: number) => Math.round((inches / 12) * 2) / 2;
+  return `about ${toFeet(widthInches)} ft by ${toFeet(heightInches)} ft`;
 }
 
 export function DimensionConfirmationRow({
@@ -36,17 +45,25 @@ export function DimensionConfirmationRow({
     correctedHeight > 0;
 
   return (
-    <div className="ring-border-subtle space-y-2.5 rounded-lg bg-white px-3 py-3 ring-1">
-      <p className="flex items-start gap-2 text-sm text-slate-800">
-        <Ruler className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <span>{prompt.summary} Does that sound about right?</span>
+    <StreamCard icon={Ruler} label="Check my measurement">
+      <div className="flex flex-wrap items-baseline gap-3">
+        <span className="font-display text-brand-950 text-[1.875rem] leading-8 font-bold tracking-[-0.02em]">
+          {roundedInches(prompt.widthInches)} × {roundedInches(prompt.heightInches)} in
+        </span>
+        <span className="text-[13.5px] text-slate-600">
+          {approximateFeet(prompt.widthInches, prompt.heightInches)}
+        </span>
+      </div>
+
+      <p className="text-[14px] leading-[22px] text-slate-600">
+        {prompt.summary} Does that sound about right?
       </p>
 
       {isCorrecting ? (
-        <div className="space-y-2">
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-2.5">
+          <div className="flex gap-2.5">
             <label className="flex-1">
-              <span className="text-xs font-medium text-slate-600">
+              <span className="text-xs font-semibold tracking-[0.03em] text-slate-500 uppercase">
                 Width (inches)
               </span>
               <input
@@ -56,11 +73,11 @@ export function DimensionConfirmationRow({
                 max={400}
                 value={width}
                 onChange={(event) => setWidth(event.target.value)}
-                className="ring-border-strong focus:ring-brand-600 mt-1 w-full rounded-lg px-2.5 py-1.5 text-sm ring-1 focus:ring-2"
+                className="border-border-strong focus:border-brand-500 focus:ring-brand-500/20 mt-1.5 h-11.5 w-full rounded-lg border px-3 text-sm focus:ring-3 focus:outline-none"
               />
             </label>
             <label className="flex-1">
-              <span className="text-xs font-medium text-slate-600">
+              <span className="text-xs font-semibold tracking-[0.03em] text-slate-500 uppercase">
                 Height (inches)
               </span>
               <input
@@ -70,12 +87,12 @@ export function DimensionConfirmationRow({
                 max={400}
                 value={height}
                 onChange={(event) => setHeight(event.target.value)}
-                className="ring-border-strong focus:ring-brand-600 mt-1 w-full rounded-lg px-2.5 py-1.5 text-sm ring-1 focus:ring-2"
+                className="border-border-strong focus:border-brand-500 focus:ring-brand-500/20 mt-1.5 h-11.5 w-full rounded-lg border px-3 text-sm focus:ring-3 focus:outline-none"
               />
             </label>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2.5">
             <button
               type="button"
               disabled={isSubmitting || !correctionIsUsable}
@@ -86,7 +103,7 @@ export function DimensionConfirmationRow({
                   heightInches: correctedHeight,
                 })
               }
-              className="bg-brand-700 hover:bg-brand-800 disabled:bg-brand-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+              className="bg-brand-700 hover:bg-brand-900 disabled:bg-brand-200 inline-flex h-11.5 flex-1 items-center justify-center rounded-lg px-4 text-[14.5px] font-semibold text-white"
             >
               Use my measurement
             </button>
@@ -94,45 +111,47 @@ export function DimensionConfirmationRow({
               type="button"
               disabled={isSubmitting}
               onClick={() => setIsCorrecting(false)}
-              className="ring-border-strong rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1"
+              className="border-border-strong hover:bg-surface-sunken text-brand-800 inline-flex h-11.5 items-center justify-center rounded-lg border px-4 text-[14.5px] font-semibold"
             >
               Back
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2.5">
           <button
             type="button"
             disabled={isSubmitting}
             onClick={() => onRespond({ response: "CONFIRMED" })}
-            className="bg-brand-700 hover:bg-brand-800 disabled:bg-brand-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+            className="bg-brand-700 hover:bg-brand-900 disabled:bg-brand-200 inline-flex h-11.5 items-center justify-center rounded-lg px-4 text-[14.5px] font-semibold text-white"
           >
             That sounds right
           </button>
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => setIsCorrecting(true)}
-            className="ring-border-strong rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1"
-          >
-            It is a different size
-          </button>
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => onRespond({ response: "UNSURE" })}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 underline"
-          >
-            I am not sure
-          </button>
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => setIsCorrecting(true)}
+              className="border-border-strong hover:bg-surface-sunken text-brand-800 inline-flex h-11.5 flex-1 items-center justify-center rounded-lg border px-4 text-[14.5px] font-semibold"
+            >
+              Different size
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => onRespond({ response: "UNSURE" })}
+              className="border-border-strong hover:bg-surface-sunken text-brand-800 inline-flex h-11.5 flex-1 items-center justify-center rounded-lg border px-4 text-[14.5px] font-semibold"
+            >
+              Not sure
+            </button>
+          </div>
         </div>
       )}
 
-      <p className="text-xs text-slate-500">
-        We read this from your photos, so it is an estimate. A glazier measures
-        it before any glass is ordered.
-      </p>
-    </div>
+      <StreamCardNote>
+        An estimate from a photo. A glazier measures on site before any glass is
+        cut.
+      </StreamCardNote>
+    </StreamCard>
   );
 }

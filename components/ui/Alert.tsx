@@ -6,10 +6,10 @@ import { cn } from "@/core/utils/cn";
 export type AlertTone = "error" | "success" | "info" | "warning";
 
 const TONE_CLASSES: Record<AlertTone, string> = {
-  error: "bg-red-50 text-red-900 ring-red-200",
-  success: "bg-green-50 text-green-900 ring-green-200",
-  info: "bg-brand-50 text-brand-900 ring-brand-200",
-  warning: "bg-amber-50 text-amber-900 ring-amber-200",
+  error: "bg-red-50 text-red-700 border-red-200",
+  success: "bg-green-50 text-green-700 border-green-200",
+  info: "bg-brand-50 text-brand-800 border-brand-200",
+  warning: "bg-amber-50 text-amber-800 border-amber-200",
 };
 
 const TONE_ICONS: Record<AlertTone, typeof Info> = {
@@ -36,15 +36,15 @@ export function Alert({
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "flex gap-3 rounded-lg px-4 py-3 text-sm ring-1 ring-inset",
+        "flex gap-3 rounded-xl border px-4 py-3.5 text-sm",
         TONE_CLASSES[tone],
         className,
       )}
     >
-      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <div className="space-y-1">
         {title ? <p className="font-semibold">{title}</p> : null}
-        {children ? <div>{children}</div> : null}
+        {children ? <div className="leading-5 opacity-90">{children}</div> : null}
       </div>
     </div>
   );

@@ -1,32 +1,101 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
-  --color-brand-950: #082f49;
+  --color-brand-50: #f1f7f8;
+  --color-brand-100: #ddebee;
+  --color-brand-200: #bbd7dd;
+  --color-brand-300: #8dbac4;
+  --color-brand-400: #5796a5;
+  --color-brand-500: #35798a;
+  --color-brand-600: #2a6172;
+  --color-brand-700: #254f5d;
+  --color-brand-800: #22424e;
+  --color-brand-900: #1b3742;
+  --color-brand-950: #0e222a;
+
+  --color-accent-50: #fbf6ec;
+  --color-accent-100: #f5e9ce;
+  --color-accent-200: #ebd29c;
+  --color-accent-300: #dfb663;
+  --color-accent-400: #d29e3c;
+  --color-accent-500: #b8842a;
+  --color-accent-600: #96681f;
+  --color-accent-700: #78521d;
+  --color-accent-800: #63441e;
+  --color-accent-900: #533a1d;
+
+  --color-slate-50: #f5f7f7;
+  --color-slate-100: #eceff0;
+  --color-slate-200: #dde2e4;
+  --color-slate-300: #c4cccf;
+  --color-slate-400: #9ba6aa;
+  --color-slate-500: #737f83;
+  --color-slate-600: #576165;
+  --color-slate-700: #414a4d;
+  --color-slate-800: #2c3336;
+  --color-slate-900: #1a1f21;
+  --color-slate-950: #0e1315;
+
+  --color-green-50: #e7f4ef;
+  --color-green-100: #d3ebe1;
+  --color-green-200: #b9dfd0;
+  --color-green-300: #8cc9b2;
+  --color-green-400: #4e9e80;
+  --color-green-500: #2b7d5f;
+  --color-green-600: #1f6d51;
+  --color-green-700: #17614a;
+  --color-green-800: #155140;
+  --color-green-900: #134336;
+
+  --color-amber-50: #fdf3e2;
+  --color-amber-100: #f9e7c4;
+  --color-amber-200: #f2ddb4;
+  --color-amber-300: #e3c07a;
+  --color-amber-400: #ce9e3e;
+  --color-amber-500: #b8842a;
+  --color-amber-600: #96681f;
+  --color-amber-700: #78521d;
+  --color-amber-800: #63441e;
+  --color-amber-900: #533a1d;
+
+  --color-red-50: #fbecec;
+  --color-red-100: #f7dcdc;
+  --color-red-200: #efc9c9;
+  --color-red-300: #e0a0a0;
+  --color-red-400: #c86a6a;
+  --color-red-500: #ae4343;
+  --color-red-600: #9c3636;
+  --color-red-700: #8f2d2d;
+  --color-red-800: #7a2828;
+  --color-red-900: #672424;
 
   --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-surface-sunken: #f1f5f9;
-  --color-border-subtle: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-surface-muted: #fafbfb;
+  --color-surface-sunken: #f5f7f7;
+  --color-border-subtle: #dde2e4;
+  --color-border-strong: #c4cccf;
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-ink: #0e222a;
+  --color-ink-deep: #071519;
+  --color-ink-line: #1b3742;
+  --color-ink-muted: #57808c;
 
-  --color-status-active: #0284c7;
-  --color-status-waiting: #b45309;
-  --color-status-done: #15803d;
-  --color-status-stalled: #b91c1c;
-  --color-status-neutral: #475569;
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-public-sans), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --shadow-xs: 0 1px 2px rgba(11, 34, 41, 0.06);
+  --shadow-sm: 0 1px 3px rgba(11, 34, 41, 0.08), 0 1px 2px rgba(11, 34, 41, 0.04);
+  --shadow-md: 0 4px 12px rgba(11, 34, 41, 0.08), 0 1px 3px rgba(11, 34, 41, 0.05);
+  --shadow-lg: 0 12px 32px rgba(11, 34, 41, 0.12), 0 2px 8px rgba(11, 34, 41, 0.06);
+  --shadow-xl: 0 24px 56px rgba(11, 34, 41, 0.16), 0 4px 12px rgba(11, 34, 41, 0.08);
+  --shadow-2xl: 0 28px 64px rgba(0, 0, 0, 0.42);
+
+  --color-status-active: #2a6172;
+  --color-status-waiting: #8a5a12;
+  --color-status-done: #17614a;
+  --color-status-stalled: #8f2d2d;
+  --color-status-neutral: #576165;
 }
 
 html {
@@ -35,12 +104,18 @@ html {
 
 body {
   background-color: var(--color-surface);
-  color: var(--color-brand-950);
+  color: var(--color-slate-900);
   font-family: var(--font-sans);
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
 :focus-visible {
-  outline: 2px solid var(--color-brand-600);
+  outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
   border-radius: 2px;
 }

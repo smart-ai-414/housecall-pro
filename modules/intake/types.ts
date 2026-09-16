@@ -14,6 +14,15 @@ export interface DimensionConfirmationPrompt {
   summary: string;
 }
 
+export interface CapturedSummary {
+  photoCount: number;
+  widthInches: number | null;
+  heightInches: number | null;
+  dimensionsConfirmed: boolean;
+  assetType: string | null;
+  issueType: string | null;
+}
+
 export interface IntakeSessionView {
   sessionId: string;
   resumeToken: string;
@@ -27,6 +36,7 @@ export interface IntakeSessionView {
   isComplete: boolean;
   perceptionPending: boolean;
   pendingDimensionConfirmation: DimensionConfirmationPrompt | null;
+  capturedSummary: CapturedSummary;
 }
 
 export interface IntakeSessionWithRouting extends IntakeSessionView {

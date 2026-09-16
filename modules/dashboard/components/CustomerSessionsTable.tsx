@@ -11,7 +11,7 @@ import {
   TableScroller,
 } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { formatDateTime, formatPhone } from "@/core/utils/format";
+import { formatPhone, formatRelativeTime } from "@/core/utils/format";
 import { SessionStatusBadge } from "@/modules/dashboard/components/StatusBadge";
 import type { SessionListRow } from "@/modules/intake/session-queries";
 
@@ -75,7 +75,7 @@ export function CustomerSessionsTable({
                 </TableCell>
                 <TableCell>{session.photoCount}</TableCell>
                 <TableCell className="whitespace-nowrap text-slate-500">
-                  {formatDateTime(session.createdAt)}
+                  {formatRelativeTime(session.createdAt)}
                 </TableCell>
               </TableRow>
             ))

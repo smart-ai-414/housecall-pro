@@ -13,9 +13,9 @@ export function SignOutButton() {
       type="button"
       disabled={isPending}
       onClick={() => startTransition(() => signOutStaff())}
-      className="hover:bg-surface-sunken flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-60"
+      className="text-brand-300 flex h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[13.5px] font-medium hover:bg-white/5 hover:text-white disabled:opacity-60"
     >
-      <LogOut className="size-4 text-slate-400" aria-hidden="true" />
+      <LogOut className="size-4 shrink-0" aria-hidden="true" />
       {isPending ? "Signing out…" : "Sign out"}
     </button>
   );

@@ -17,12 +17,12 @@ export function Table({ children }: { children: ReactNode }) {
 export function TableHead({ columns }: { columns: readonly string[] }) {
   return (
     <thead>
-      <tr className="border-border-subtle border-b">
+      <tr className="border-border-subtle bg-surface-muted border-b">
         {columns.map((column) => (
           <th
             key={column}
             scope="col"
-            className="px-5 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase"
+            className="px-4 py-2.5 text-[11.5px] font-semibold tracking-[0.05em] text-slate-500 uppercase"
           >
             {column}
           </th>
@@ -33,11 +33,11 @@ export function TableHead({ columns }: { columns: readonly string[] }) {
 }
 
 export function TableBody({ children }: { children: ReactNode }) {
-  return <tbody className="divide-border-subtle divide-y">{children}</tbody>;
+  return <tbody className="divide-y divide-slate-100">{children}</tbody>;
 }
 
 export function TableRow({ children }: { children: ReactNode }) {
-  return <tr className="hover:bg-surface-muted">{children}</tr>;
+  return <tr className="hover:bg-surface-muted transition-colors">{children}</tr>;
 }
 
 export function TableCell({
@@ -48,7 +48,7 @@ export function TableCell({
   children: ReactNode;
 }) {
   return (
-    <td className={cn("px-5 py-3 align-middle text-slate-700", className)}>
+    <td className={cn("px-4 py-3.5 align-middle text-slate-700", className)}>
       {children}
     </td>
   );

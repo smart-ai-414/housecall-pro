@@ -37,34 +37,32 @@ export function DashboardSidebarNav({
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Dashboard sections" className="space-y-1">
-      {items.map((item) => {
-        const Icon = ICONS[item.iconName];
-        const active = isActive(pathname, item.href);
+    <nav aria-label="Dashboard">
+      <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+        {items.map((item) => {
+          const Icon = ICONS[item.iconName];
+          const active = isActive(pathname, item.href);
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              active
-                ? "bg-brand-50 text-brand-800"
-                : "hover:bg-surface-sunken text-slate-600 hover:text-slate-900",
-            )}
-          >
-            <Icon
-              className={cn(
-                "size-4 shrink-0",
-                active ? "text-brand-700" : "text-slate-400",
-              )}
-              aria-hidden="true"
-            />
-            {item.label}
-          </Link>
-        );
-      })}
+          return (
+            <li key={item.href} className="shrink-0 lg:shrink">
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                title={item.description}
+                className={cn(
+                  "flex h-10.5 items-center gap-3 rounded-lg px-3 text-[14.5px] whitespace-nowrap transition-colors",
+                  active
+                    ? "bg-brand-800 font-semibold text-white"
+                    : "text-brand-300 font-medium hover:bg-white/5 hover:text-white",
+                )}
+              >
+                <Icon className="size-4.5 shrink-0" aria-hidden="true" />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }

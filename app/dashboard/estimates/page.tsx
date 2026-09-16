@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { Alert } from "@/components/ui/Alert";
-import { Card } from "@/components/ui/Card";
 import { requireRole } from "@/modules/auth/authz";
 import { PageHeading } from "@/modules/dashboard/components/PageHeading";
 import { EstimateReviewQueue } from "@/modules/estimates/components/EstimateReviewQueue";
@@ -18,11 +17,11 @@ export default async function EstimatesPage() {
   return (
     <>
       <PageHeading
-        title="Estimates"
-        description="Drafts synced to Housecall Pro. Review and send them in Housecall Pro itself, where the price book lives."
+        title="Review queue"
+        description="Drafts synced to Housecall Pro, created unsent. Pricing and sending happen there, where the price book lives."
       />
 
-      <Alert tone="info" className="mb-6">
+      <Alert tone="info" className="mb-4">
         Estimates are created unsent. No price generated in this application
         reaches a customer, and nothing here is sent automatically.
       </Alert>
@@ -32,9 +31,7 @@ export default async function EstimatesPage() {
           {estimatesRead.message}
         </Alert>
       ) : (
-        <Card>
-          <EstimateReviewQueue estimates={estimatesRead.data} />
-        </Card>
+        <EstimateReviewQueue estimates={estimatesRead.data} />
       )}
     </>
   );

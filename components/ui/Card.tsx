@@ -11,7 +11,10 @@ export function Card({
 }) {
   return (
     <section
-      className={cn("ring-border-subtle rounded-xl bg-white ring-1", className)}
+      className={cn(
+        "border-border-subtle shadow-xs rounded-xl border bg-white",
+        className,
+      )}
     >
       {children}
     </section>
@@ -32,14 +35,16 @@ export function CardHeader({
   return (
     <header
       className={cn(
-        "border-border-subtle flex items-start justify-between gap-4 border-b px-5 py-4",
+        "flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4",
         className,
       )}
     >
       <div className="space-y-1">
-        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+        <h2 className="font-display text-base font-semibold tracking-tight text-brand-950">
+          {title}
+        </h2>
         {description ? (
-          <p className="text-sm text-slate-500">{description}</p>
+          <p className="text-[13px] leading-5 text-slate-400">{description}</p>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

@@ -1,62 +1,66 @@
-import { BRAND } from "@/core/config/branding";
-import { StartEstimateButton } from "@/modules/marketing/components/StartEstimateButton";
+import { Lock, Ruler, UserCheck } from "lucide-react";
 
 const COMMITMENTS = [
   {
-    question: "Does a computer decide what I pay?",
-    answer:
-      "No. The assistant reads your photos and asks questions. Pricing comes from our rate book, applied by a glazier who reviews every estimate before it leaves the office.",
+    icon: UserCheck,
+    title: "Reviewed by a glazier, every time",
+    body: "No estimate reaches you without someone looking at it first. There is no confidence threshold that skips that step.",
   },
   {
-    question: "What if the assistant gets the size wrong?",
-    answer:
-      "It shows you the measurement it read from the photo and asks you to confirm it. An unconfirmed measurement is never used, and you can type the real numbers instead.",
+    icon: Lock,
+    title: "Your photos stay private",
+    body: "Location data is stripped from every image before anyone opens it, and photos are never used for anything but your job.",
   },
   {
-    question: "What about safety glass?",
-    answer:
-      "We ask, or we verify it on site. A visible safety marking on the pane proves it is tempered. The absence of one proves nothing, so we never assume.",
-  },
-  {
-    question: "What happens to my photos?",
-    answer:
-      "They are re-encoded on upload, which removes the GPS coordinates your phone attaches. Only our estimating team sees them.",
-  },
-  {
-    question: "What if my job is unusual?",
-    answer: `Then the assistant says so instead of guessing. Complicated work goes to a person, and we call you at ${BRAND.phone}.`,
+    icon: Ruler,
+    title: "We measure before we cut",
+    body: "The photo estimate gets you a price. A glazier still measures on site before any glass is ordered.",
   },
 ] as const;
 
 export function AssuranceSection() {
   return (
-    <section className="border-border-subtle bg-surface-muted border-y">
-      <div className="mx-auto max-w-6xl px-6 py-16 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="space-y-5">
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
-              Straight answers
-            </h2>
-            <p className="text-lg text-slate-600">
-              Glass pricing depends on details a photo can miss. Here is exactly
-              where the assistant stops and a person takes over.
-            </p>
-            <StartEstimateButton size="md" variant="secondary" />
-          </div>
-
-          <dl className="space-y-6">
-            {COMMITMENTS.map(({ question, answer }) => (
-              <div
-                key={question}
-                className="border-border-subtle border-b pb-6 last:border-0 last:pb-0"
-              >
-                <dt className="font-semibold text-slate-900">{question}</dt>
-                <dd className="mt-1.5 text-slate-600">{answer}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+    <section className="mx-auto grid max-w-[74rem] gap-14 px-6 py-20 lg:grid-cols-2 lg:items-center lg:gap-20 lg:py-[5.5rem]">
+      <div className="flex flex-col gap-5">
+        <span className="text-accent-500 text-xs font-semibold tracking-[0.12em] uppercase">
+          Why a person still prices it
+        </span>
+        <h2 className="font-display text-brand-950 text-[2rem] leading-[1.15] font-bold tracking-[-0.022em] text-pretty sm:text-[2.375rem]">
+          Software is good at looking. It is not good at standing behind a
+          number.
+        </h2>
+        <p className="text-[17px] leading-7 text-slate-600">
+          The assistant reads your photos, works out the opening size and asks
+          the questions a glazier would ask. Then it stops. A person on our team
+          checks the job, prices it from the rate book and decides what you are
+          sent.
+        </p>
+        <p className="text-[17px] leading-7 text-slate-600">
+          You never get an automated quote from us, and you never get a surprise
+          on the day.
+        </p>
       </div>
+
+      <ul className="flex flex-col gap-3.5">
+        {COMMITMENTS.map(({ icon: Icon, title, body }) => (
+          <li
+            key={title}
+            className="border-brand-100 bg-brand-50 flex gap-4.5 rounded-2xl border p-5.5"
+          >
+            <Icon
+              className="text-brand-600 mt-0.5 size-6 shrink-0"
+              strokeWidth={1.7}
+              aria-hidden="true"
+            />
+            <div className="flex flex-col gap-1.5">
+              <p className="text-brand-950 text-base font-semibold">{title}</p>
+              <p className="text-[14.5px] leading-[23px] text-slate-600">
+                {body}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

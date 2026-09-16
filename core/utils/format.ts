@@ -30,3 +30,28 @@ export function formatPhone(input: string): string {
   if (digits.length !== 10) return input;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
+
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+export function formatRelativeTime(value: Date | string): string {
+  const then = value instanceof Date ? value : new Date(value);
+  const elapsed = Date.now() - then.getTime();
+
+  if (elapsed < MINUTE_MS) return "just now";
+  if (elapsed < HOUR_MS) {
+    const minutes = Math.floor(elapsed / MINUTE_MS);
+    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+  }
+  if (elapsed < DAY_MS) {
+    const hours = Math.floor(elapsed / HOUR_MS);
+    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  }
+
+  const days = Math.floor(elapsed / DAY_MS);
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days} days ago`;
+
+  return formatDateTime(then);
+}

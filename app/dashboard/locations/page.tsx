@@ -42,15 +42,18 @@ export default async function LocationsPage() {
       />
 
       {overlaps.length > 0 ? (
-        <Alert tone="warning" title="Overlapping territories" className="mb-6">
-          {overlaps.join(", ")} appear in more than one active territory. Jobs
-          in those ZIP codes will be held for manual routing rather than sent to
-          an arbitrary location.
+        <Alert tone="warning" title="Overlapping territories" className="mb-5">
+          {overlaps.join(", ")} appear in more than one active territory. Jobs in
+          those ZIP codes will be held for manual routing rather than sent to an
+          arbitrary location.
         </Alert>
       ) : null}
 
-      <div className="space-y-6">
-        <FranchiseLocationList locations={locationsRead.data} />
+      <div className="grid gap-5 xl:grid-cols-[1.5fr_1fr] xl:items-start">
+        <FranchiseLocationList
+          locations={locationsRead.data}
+          overlappingZipCodes={overlaps}
+        />
         <FranchiseLocationForm locations={locationsRead.data} />
       </div>
     </>

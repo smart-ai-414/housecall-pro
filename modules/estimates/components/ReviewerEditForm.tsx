@@ -16,6 +16,12 @@ async function submit(_state: EditState, formData: FormData) {
   return logReviewerEdit(formData);
 }
 
+const CONTROL_CLASSES =
+  "h-10 w-full rounded-lg border border-border-strong bg-white px-3 text-[13.5px] text-slate-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none";
+
+const LABEL_CLASSES =
+  "text-[11px] font-semibold tracking-[0.05em] text-slate-500 uppercase";
+
 export function ReviewerEditForm({ estimateId }: { estimateId: string }) {
   const [state, formAction, isPending] = useActionState<EditState, FormData>(
     submit,
@@ -23,43 +29,32 @@ export function ReviewerEditForm({ estimateId }: { estimateId: string }) {
   );
 
   return (
-    <form action={formAction} className="space-y-2">
+    <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="estimateId" value={estimateId} />
 
-      <div className="flex flex-wrap items-end gap-2">
-        <label className="min-w-40">
-          <span className="text-xs font-medium text-slate-600">
-            What did you change?
-          </span>
-          <select
-            name="fieldChanged"
-            defaultValue="assetType"
-            className="ring-border-strong focus:ring-brand-600 mt-1 w-full rounded-lg bg-white px-2.5 py-1.5 text-sm ring-1 focus:ring-2"
-          >
-            {REVIEWER_EDIT_FIELDS.map((field) => (
-              <option key={field} value={field}>
-                {REVIEWER_EDIT_FIELD_LABELS[field]}
-              </option>
-            ))}
-          </select>
-        </label>
+      <label className="flex flex-col gap-1.5">
+        <span className={LABEL_CLASSES}>What did you change?</span>
+        <select
+          name="fieldChanged"
+          defaultValue="assetType"
+          className={CONTROL_CLASSES}
+        >
+          {REVIEWER_EDIT_FIELDS.map((field) => (
+            <option key={field} value={field}>
+              {REVIEWER_EDIT_FIELD_LABELS[field]}
+            </option>
+          ))}
+        </select>
+      </label>
 
-        <label className="min-w-48 flex-1">
-          <span className="text-xs font-medium text-slate-600">
-            What should it have been?
-          </span>
-          <input
-            name="newValue"
-            maxLength={200}
-            required
-            className="ring-border-strong focus:ring-brand-600 mt-1 w-full rounded-lg bg-white px-2.5 py-1.5 text-sm ring-1 focus:ring-2"
-          />
-        </label>
+      <label className="flex flex-col gap-1.5">
+        <span className={LABEL_CLASSES}>What should it have been?</span>
+        <input name="newValue" maxLength={200} required className={CONTROL_CLASSES} />
+      </label>
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving…" : "Log correction"}
-        </Button>
-      </div>
+      <Button type="submit" size="sm" disabled={isPending} className="self-start">
+        {isPending ? "Saving…" : "Save correction"}
+      </Button>
 
       {state?.ok === false ? (
         <p className="text-xs text-red-700">{state.error.message}</p>

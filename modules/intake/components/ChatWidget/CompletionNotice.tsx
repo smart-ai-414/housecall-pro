@@ -1,28 +1,44 @@
 import { CheckCircle2 } from "lucide-react";
 
 import { BRAND } from "@/core/config/branding";
+import { capturedFacts } from "@/modules/intake/progress";
+import type { CapturedSummary } from "@/modules/intake/types";
 
 export function CompletionNotice({
   locationName,
+  summary,
 }: {
   locationName: string | null;
+  summary: CapturedSummary;
 }) {
+  const facts = capturedFacts(summary);
+
   return (
-    <div className="space-y-1.5 rounded-lg bg-green-50 px-3 py-3 ring-1 ring-green-200 ring-inset">
-      <p className="flex items-center gap-2 text-sm font-semibold text-green-900">
-        <CheckCircle2 className="size-4" aria-hidden="true" />
-        Sent to our team
+    <div className="flex flex-col gap-3.5 rounded-2xl border border-green-200 bg-green-50 p-5">
+      <p className="flex items-center gap-2.5 text-green-700">
+        <CheckCircle2 className="size-6 shrink-0" aria-hidden="true" />
+        <span className="font-display text-lg font-semibold tracking-[-0.01em]">
+          Sent to {locationName ?? BRAND.legalName}
+        </span>
       </p>
-      <p className="text-sm text-green-900">
-        {locationName
-          ? `${locationName} has everything they need.`
-          : "Our team has everything they need."}{" "}
-        A glazier prices the work and sends your estimate — usually the same
-        day. Nothing is quoted automatically.
+
+      <p className="text-[15px] leading-6 text-green-700">
+        A glazier prices this against our rate book and sends you the estimate —
+        usually the same day. Nothing is quoted automatically.
       </p>
-      <p className="text-xs text-green-800">
-        Remembered something? Add it below, or call {BRAND.phone}.
-      </p>
+
+      {facts.length > 0 ? (
+        <dl className="grid gap-3 border-t border-green-200 pt-4 sm:grid-cols-3">
+          {facts.map(({ label, value }) => (
+            <div key={label} className="flex flex-col gap-1">
+              <dt className="text-[11px] font-semibold tracking-[0.04em] text-green-600 uppercase">
+                {label}
+              </dt>
+              <dd className="text-sm font-semibold text-green-700">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </div>
   );
 }

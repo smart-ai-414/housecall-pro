@@ -25,6 +25,7 @@ import {
 import {
   describeDimensionEstimate,
   DIMENSION_CONFIRMATION_QUESTION_ID,
+  FORM_ANSWERED_QUESTION_IDS,
   OPENING_QUESTION_SEQUENCE,
   QUESTION_BANK,
   QUESTIONS_NOT_ANSWERABLE_BY_FREE_TEXT,
@@ -58,17 +59,17 @@ import {
 } from "@/modules/tenancy/territory-routing";
 
 const OPENING_MESSAGE_WITH_PHOTOS = [
-  "Hi — I can get you an estimate for glass repair or replacement.",
+  "Hi — I can get you an estimate for broken or failed glass.",
   "",
-  "First, your name, phone number and the address where the work is needed. That way we can still reach you if anything interrupts us.",
+  "I need two photos and a couple of short answers. It takes about three minutes.",
   "",
-  "Then I will ask for two photos, read the size from them and ask you to check it. A glazier prices the work and sends you the estimate.",
+  "I will read the size from the photos and ask you to check it, then take your details at the end. A glazier prices the work and sends you the estimate.",
 ].join("\n");
 
 const OPENING_MESSAGE_WITHOUT_PHOTOS = [
   "Hi — I can get your glass repair or replacement in front of our team.",
   "",
-  "Photo upload is not switched on yet. Start with your name, phone number and the service address, then tell me what happened in your own words. A glazier will follow up to measure and price the work.",
+  "Photo upload is not switched on yet. Tell me what happened in your own words and I will take your details at the end. A glazier will follow up to measure and price the work.",
 ].join("\n");
 
 const LOOKING_AT_PHOTOS_MESSAGE =
@@ -142,6 +143,14 @@ export async function startIntakeSession({
     isComplete: false,
     perceptionPending: false,
     pendingDimensionConfirmation: null,
+    capturedSummary: {
+      photoCount: 0,
+      widthInches: null,
+      heightInches: null,
+      dimensionsConfirmed: false,
+      assetType: null,
+      issueType: null,
+    },
   };
 }
 
@@ -252,6 +261,11 @@ async function composeSessionView({
           customerConfirmed: true,
         },
       },
+      classifications: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { assetType: true, issueType: true },
+      },
     },
   });
 
@@ -293,6 +307,14 @@ async function composeSessionView({
       outstandingPhotoTypes.length === 0 &&
       (await perceptionIsPending(sessionId)),
     pendingDimensionConfirmation,
+    capturedSummary: {
+      photoCount: session?.photos.length ?? 0,
+      widthInches: latestDimensions?.widthInches ?? null,
+      heightInches: latestDimensions?.heightInches ?? null,
+      dimensionsConfirmed: latestDimensions?.customerConfirmed ?? false,
+      assetType: session?.classifications[0]?.assetType ?? null,
+      issueType: session?.classifications[0]?.issueType ?? null,
+    },
   };
 }
 
@@ -315,9 +337,14 @@ export async function recordCustomerMessage({
     ? session.outstandingQuestions.filter((id) => id !== answeredNow)
     : session.outstandingQuestions;
 
+  const wasAlreadyComplete =
+    outstandingPhotoTypes.length === 0 &&
+    session.outstandingQuestions.length === 0;
+
   const acknowledgement = buildAcknowledgement({
     outstandingPhotoTypes,
     outstandingQuestions: remainingQuestions,
+    isFollowUpAfterCompletion: wasAlreadyComplete,
   });
 
   const nextState = mergeCollectedDetails(
@@ -863,8 +890,6 @@ async function outstandingPhotoTypesForSession(
 function questionAnsweredByFreeText(
   outstandingQuestions: readonly string[],
 ): string | null {
-  if (outstandingQuestions.includes("CONTACT_DETAILS")) return null;
-
   return (
     outstandingQuestions.find(
       (id) =>
@@ -876,29 +901,48 @@ function questionAnsweredByFreeText(
   );
 }
 
+const FOLLOW_UP_AFTER_COMPLETION =
+  "Thanks — I have added that to your job and flagged it for the glazier. Your details are already with the team, so they will see this before they price the work.";
+
 function buildAcknowledgement({
   outstandingPhotoTypes,
   outstandingQuestions,
+  isFollowUpAfterCompletion,
 }: {
   outstandingPhotoTypes: readonly PhotoType[];
   outstandingQuestions: readonly string[];
+  isFollowUpAfterCompletion: boolean;
 }): string {
-  if (outstandingQuestions.includes("CONTACT_DETAILS")) {
-    return `${QUESTION_BANK.CONTACT_DETAILS.prompt}\n\n${QUESTION_BANK.CONTACT_DETAILS.helper}`;
-  }
+  if (isFollowUpAfterCompletion) return FOLLOW_UP_AFTER_COMPLETION;
 
   if (outstandingPhotoTypes.length > 0) {
     return `Thanks. I still need one photo: ${PHOTO_TYPE_GUIDANCE[outstandingPhotoTypes[0]].instruction}`;
   }
 
-  const nextQuestionId = outstandingQuestions.find((id) => id in QUESTION_BANK);
+  const nextQuestionId = outstandingQuestions.find(
+    (id) =>
+      id in QUESTION_BANK &&
+      !(FORM_ANSWERED_QUESTION_IDS as readonly string[]).includes(id),
+  );
 
   if (nextQuestionId) {
     const question =
       QUESTION_BANK[nextQuestionId as keyof typeof QUESTION_BANK];
     return question.helper
-      ? `${question.prompt}\n\n${question.helper}`
+      ? `${question.prompt}
+
+${question.helper}`
       : question.prompt;
+  }
+
+  if (
+    outstandingQuestions.some((id) =>
+      (FORM_ANSWERED_QUESTION_IDS as readonly string[]).includes(id),
+    )
+  ) {
+    return `${QUESTION_BANK.CONTACT_DETAILS.prompt}
+
+${QUESTION_BANK.CONTACT_DETAILS.helper}`;
   }
 
   return "Thanks — that is everything I need. Our team will review the details and send your estimate.";

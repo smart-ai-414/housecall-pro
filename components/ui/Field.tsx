@@ -33,18 +33,18 @@ export function Field({
     <div className={cn("space-y-1.5", className)}>
       <label
         htmlFor={htmlFor}
-        className="block text-sm font-medium text-slate-800"
+        className="block text-xs font-semibold tracking-[0.03em] text-slate-500 uppercase"
       >
         {label}
         {required ? (
-          <span className="ml-1 text-red-600" aria-hidden="true">
+          <span className="ml-1 text-red-700" aria-hidden="true">
             *
           </span>
         ) : null}
       </label>
 
       {hint ? (
-        <p id={`${htmlFor}-hint`} className="text-xs text-slate-500">
+        <p id={`${htmlFor}-hint`} className="text-xs text-slate-400">
           {hint}
         </p>
       ) : null}

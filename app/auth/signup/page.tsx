@@ -14,11 +14,11 @@ export default async function SignUpPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+      <div className="space-y-2">
+        <h1 className="font-display text-brand-950 text-[1.625rem] font-bold tracking-[-0.018em]">
           Create your account
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-[14.5px] leading-6 text-slate-600">
           You need an invite code from an administrator. Your code decides what
           you can see.
         </p>
