@@ -86,6 +86,13 @@ export const photoQualityResultSchema = z.object({
 
 export type PhotoQualityResult = z.infer<typeof photoQualityResultSchema>;
 
+export const observationResultSchema = z.object({
+  classification: classificationResultSchema,
+  photoQuality: photoQualityResultSchema,
+});
+
+export type ObservationResult = z.infer<typeof observationResultSchema>;
+
 export const SCALE_REFERENCE_RANK: Record<ScaleReference, number> = {
   HEAD_HEIGHT: 1,
   BRICK_COURSING: 2,

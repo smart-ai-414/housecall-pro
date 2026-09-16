@@ -1,16 +1,17 @@
 import { resolveProvider } from "@/modules/perception/provider-registry";
 import type {
-  ClassificationResult,
   DimensionResult,
-  PhotoQualityResult,
+  ObservationResult,
 } from "@/modules/perception/schemas";
-import type {
-  DimensionInput,
-  PerceptionFunction,
-  PerceptionInput,
-  PerceptionObservation,
-  PerceptionOutcome,
-  PerceptionProvider,
+import {
+  describeRequestFailure,
+  isRetryable,
+  type DimensionInput,
+  type PerceptionFunction,
+  type PerceptionInput,
+  type PerceptionObservation,
+  type PerceptionOutcome,
+  type PerceptionProvider,
 } from "@/modules/perception/types";
 
 export const PERCEPTION_TIMEOUT_MS = 30_000;
@@ -61,7 +62,20 @@ async function runWithFailThrough<T>({
         attempts: attempt,
       };
     } catch (error) {
-      lastReason = error instanceof Error ? error.message : String(error);
+      lastReason = describeRequestFailure(error);
+
+      if (!isRetryable(error)) {
+        console.error(
+          `[perception] ${perceptionFunction} failed permanently on ${provider.name}, not retrying: ${lastReason}`,
+        );
+
+        return {
+          status: "FAILED",
+          reason: lastReason,
+          provider: provider.name,
+          attempts: attempt,
+        };
+      }
 
       console.warn(
         `[perception] ${perceptionFunction} attempt ${attempt}/${maxAttempts} failed on ${provider.name}: ${lastReason}`,
@@ -103,11 +117,11 @@ async function guarded<T>(
   });
 }
 
-export function classify(
+export function observe(
   input: PerceptionInput,
   overrides?: { provider?: PerceptionProvider; timeoutMs?: number },
-): Promise<PerceptionOutcome<ClassificationResult>> {
-  return guarded("classify", (provider) => provider.classify(input), overrides);
+): Promise<PerceptionOutcome<ObservationResult>> {
+  return guarded("observe", (provider) => provider.observe(input), overrides);
 }
 
 export function estimateDimensions(
@@ -117,17 +131,6 @@ export function estimateDimensions(
   return guarded(
     "estimateDimensions",
     (provider) => provider.estimateDimensions(input),
-    overrides,
-  );
-}
-
-export function assessPhotoQuality(
-  input: PerceptionInput,
-  overrides?: { provider?: PerceptionProvider; timeoutMs?: number },
-): Promise<PerceptionOutcome<PhotoQualityResult>> {
-  return guarded(
-    "assessPhotoQuality",
-    (provider) => provider.assessPhotoQuality(input),
     overrides,
   );
 }

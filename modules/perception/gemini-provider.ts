@@ -1,18 +1,18 @@
-import { geminiEnv } from "@/core/config/env";
+import { fetch as undiciFetch, ProxyAgent, type Dispatcher } from "undici";
+
+import { geminiEnv, geminiProxyUrl } from "@/core/config/env";
 import {
-  classificationPrompt,
   dimensionPrompt,
-  photoQualityPrompt,
+  observationPrompt,
 } from "@/modules/perception/prompts";
 import {
-  classificationResultSchema,
   dimensionResultSchema,
-  photoQualityResultSchema,
-  type ClassificationResult,
+  observationResultSchema,
   type DimensionResult,
-  type PhotoQualityResult,
+  type ObservationResult,
 } from "@/modules/perception/schemas";
 import {
+  PerceptionRequestError,
   PerceptionUnavailableError,
   type DimensionInput,
   type PerceptionInput,
@@ -23,6 +23,21 @@ import {
 
 const GENERATIVE_LANGUAGE_BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta";
+
+let cachedDispatcher: Dispatcher | null | undefined;
+
+function proxyDispatcher(): Dispatcher | undefined {
+  if (cachedDispatcher === undefined) {
+    const proxyUrl = geminiProxyUrl();
+    cachedDispatcher = proxyUrl === null ? null : new ProxyAgent(proxyUrl);
+  }
+
+  return cachedDispatcher ?? undefined;
+}
+
+export function resetGeminiDispatcher(): void {
+  cachedDispatcher = undefined;
+}
 
 interface GeminiPart {
   text?: string;
@@ -76,7 +91,7 @@ async function callGemini({
 }): Promise<{ parsed: unknown; model: string }> {
   const { GEMINI_API_KEY, GEMINI_MODEL } = geminiEnv();
 
-  const response = await fetch(
+  const response = await undiciFetch(
     `${GENERATIVE_LANGUAGE_BASE_URL}/models/${GEMINI_MODEL}:generateContent`,
     {
       method: "POST",
@@ -94,13 +109,16 @@ async function callGemini({
           responseSchema,
         },
       }),
-      cache: "no-store",
+      dispatcher: proxyDispatcher(),
     },
   );
 
   if (!response.ok) {
     const detail = (await response.text()).slice(0, 500);
-    throw new Error(`Gemini responded ${response.status}: ${detail}`);
+    throw new PerceptionRequestError(
+      `Gemini responded ${response.status}: ${detail}`,
+      response.status,
+    );
   }
 
   const text = readFirstText((await response.json()) as GeminiResponse);
@@ -123,16 +141,31 @@ function observed<T>(
   };
 }
 
-const CLASSIFICATION_RESPONSE_SCHEMA = {
+const OBSERVATION_RESPONSE_SCHEMA = {
   type: "object",
   properties: {
-    assetType: { type: "string" },
-    issueType: { type: "string" },
-    frameMaterialHint: { type: "string" },
-    confidence: { type: "number" },
-    reasoning: { type: "string" },
+    classification: {
+      type: "object",
+      properties: {
+        assetType: { type: "string" },
+        issueType: { type: "string" },
+        frameMaterialHint: { type: "string" },
+        confidence: { type: "number" },
+        reasoning: { type: "string" },
+      },
+      required: ["assetType", "issueType", "confidence"],
+    },
+    photoQuality: {
+      type: "object",
+      properties: {
+        overall: { type: "string" },
+        problems: { type: "array", items: { type: "string" } },
+        shouldRequestCornerCloseUp: { type: "boolean" },
+      },
+      required: ["overall"],
+    },
   },
-  required: ["assetType", "issueType", "confidence"],
+  required: ["classification", "photoQuality"],
 };
 
 const DIMENSION_RESPONSE_SCHEMA = {
@@ -148,16 +181,6 @@ const DIMENSION_RESPONSE_SCHEMA = {
   required: ["status"],
 };
 
-const PHOTO_QUALITY_RESPONSE_SCHEMA = {
-  type: "object",
-  properties: {
-    overall: { type: "string" },
-    problems: { type: "array", items: { type: "string" } },
-    shouldRequestCornerCloseUp: { type: "boolean" },
-  },
-  required: ["overall"],
-};
-
 function assertPhotosPresent(input: PerceptionInput): void {
   if (input.photos.length === 0) {
     throw new PerceptionUnavailableError(
@@ -170,17 +193,17 @@ export function createGeminiProvider(): PerceptionProvider {
   return {
     name: "gemini",
 
-    async classify(
+    async observe(
       input: PerceptionInput,
-    ): Promise<PerceptionObservation<ClassificationResult>> {
+    ): Promise<PerceptionObservation<ObservationResult>> {
       assertPhotosPresent(input);
 
       return observed(
-        (raw) => classificationResultSchema.parse(raw),
+        (raw) => observationResultSchema.parse(raw),
         await callGemini({
-          prompt: classificationPrompt(input),
+          prompt: observationPrompt(input),
           photos: input.photos,
-          responseSchema: CLASSIFICATION_RESPONSE_SCHEMA,
+          responseSchema: OBSERVATION_RESPONSE_SCHEMA,
         }),
       );
     },
@@ -200,19 +223,5 @@ export function createGeminiProvider(): PerceptionProvider {
       );
     },
 
-    async assessPhotoQuality(
-      input: PerceptionInput,
-    ): Promise<PerceptionObservation<PhotoQualityResult>> {
-      assertPhotosPresent(input);
-
-      return observed(
-        (raw) => photoQualityResultSchema.parse(raw),
-        await callGemini({
-          prompt: photoQualityPrompt(input),
-          photos: input.photos,
-          responseSchema: PHOTO_QUALITY_RESPONSE_SCHEMA,
-        }),
-      );
-    },
   };
 }

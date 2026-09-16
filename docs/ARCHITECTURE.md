@@ -724,8 +724,36 @@ under the question they were answering.
 `modules/perception/` is the AI layer the plan's 5.1 asks for: a service
 interface whose functions route to providers **by configuration, not code
 changes**. `PERCEPTION_PROVIDER` sets them all; `PERCEPTION_PROVIDER_DIMENSIONS`
-and its siblings override one at a time, so the plan's "escalate spatial
+and its sibling override one at a time, so the plan's "escalate spatial
 reasoning to a stronger model" is an env change rather than a deploy.
+
+### Why there are two perception functions, not three
+
+`observe` returns the classification **and** the photo-quality verdict from one
+call. They were two calls until the cost of that showed up in the numbers: both
+questions read the same photographs, so a two-photo session was uploading the
+same ~712 KB of base64 twice, about 3,100 image tokens each time, for answers
+that are consumed together and never separately.
+
+The saving is the smaller half of the reason. The larger half is that splitting
+them made a silent failure possible. `assessPricingGate` reads
+`photoQuality.overall === "UNUSABLE"`, and when the quality call failed on its
+own the pipeline carried `photoQuality: null` into the gate, where a missing
+verdict was indistinguishable from a passing one — an unusable photograph could
+reach pricing because the check that would have caught it had crashed. Merging
+the calls removes the state: either both judgements arrive or neither does, and
+neither-means-callback. The gate now also treats a null verdict as a bypass
+reason in its own right, so the failure cannot be silent even if some future
+caller reintroduces it.
+
+`estimateDimensions` stays separate for a reason that is not symmetrical. It is
+conditioned on the asset type `observe` returns, and it is skipped entirely when
+the gate has already decided to bypass pricing — so on a bypassed session it
+costs nothing at all. Folding it in would save a third call on the happy path
+and pay for a discarded measurement on every bypassed one, and it would put
+three unrelated judgements in one prompt. That trade is not worth making before
+`npm run accuracy` has a baseline to measure the change against; see **Shadow
+mode and calibration**.
 
 Gemini is the default, per the plan and the client's existing key. Anthropic is
 registered alongside it, so the plan's "switch providers with an environment
@@ -754,9 +782,9 @@ report.
 
 `perception-pipeline.ts` loads every photograph for the session, sends them in a
 single call per question, and writes the rows. It is driven by
-`POST /api/intake/analyze` rather than by the photo upload itself: three model
-calls against a 30-second timeout do not belong inside the request that confirms
-an upload, and the customer should see "Looking at your photos…" rather than a
+`POST /api/intake/analyze` rather than by the photo upload itself: model calls
+against a 30-second timeout do not belong inside the request that confirms an
+upload, and the customer should see "Looking at your photos…" rather than a
 spinner on the upload button.
 
 Every call is paid and the intake endpoint is public, so a session gets

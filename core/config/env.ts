@@ -138,6 +138,21 @@ export function isGeminiConfigured(): boolean {
   return geminiSchema.safeParse(process.env).success;
 }
 
+export function geminiProxyUrl(): string | null {
+  const configured = (process.env.GEMINI_PROXY_URL ?? "").trim();
+  if (configured === "") return null;
+
+  const parsed = z.string().url().safeParse(configured);
+
+  if (!parsed.success) {
+    throw new EnvironmentError("Gemini proxy", [
+      `GEMINI_PROXY_URL: must be a full URL including the scheme, for example http://user:pass@host:port (got ${JSON.stringify(configured.slice(0, 12))}…)`,
+    ]);
+  }
+
+  return parsed.data;
+}
+
 const anthropicSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, "required"),
   ANTHROPIC_MODEL: z.string().min(1).default("claude-opus-5"),

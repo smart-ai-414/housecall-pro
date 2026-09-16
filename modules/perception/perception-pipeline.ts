@@ -16,9 +16,8 @@ import { PHOTO_TYPE_GUIDANCE } from "@/modules/photos/photo-service";
 import { downloadObject } from "@/modules/photos/storage";
 import "@/modules/perception/index";
 import {
-  assessPhotoQuality,
-  classify,
   estimateDimensions,
+  observe,
 } from "@/modules/perception/perception-service";
 import { priceBandFor } from "@/modules/perception/price-bands";
 import {
@@ -70,7 +69,7 @@ export interface PerceptionSummary {
 
 export type PerceptionRunOutcome =
   | { status: "COMPLETED"; summary: PerceptionSummary }
-  | { status: "SKIPPED"; reason: string }
+  | { status: "SKIPPED"; reason: string; customerIsWaiting: boolean }
   | { status: "FAILED"; reason: string };
 
 export function describeCustomerReport(state: ConversationState): string {
@@ -193,16 +192,27 @@ export async function runPerceptionForSession(
     },
   });
 
-  if (!session) return { status: "SKIPPED", reason: "No such session." };
+  if (!session) {
+    return {
+      status: "SKIPPED",
+      reason: "No such session.",
+      customerIsWaiting: false,
+    };
+  }
 
   if (session.photos.length === 0) {
-    return { status: "SKIPPED", reason: "No photographs have been received." };
+    return {
+      status: "SKIPPED",
+      reason: "No photographs have been received.",
+      customerIsWaiting: false,
+    };
   }
 
   if (session.perceptionRunCount >= maxRunsPerSession()) {
     return {
       status: "SKIPPED",
       reason: "This session has already used its perception budget.",
+      customerIsWaiting: true,
     };
   }
 
@@ -223,19 +233,15 @@ export async function runPerceptionForSession(
     );
     const input = { photos, customerDescription };
 
-    const [qualityOutcome, classificationOutcome] = await Promise.all([
-      assessPhotoQuality(input, { timeoutMs: PERCEPTION_STAGE_TIMEOUT_MS }),
-      classify(input, { timeoutMs: PERCEPTION_STAGE_TIMEOUT_MS }),
-    ]);
+    const observationOutcome = await observe(input, {
+      timeoutMs: PERCEPTION_STAGE_TIMEOUT_MS,
+    });
 
-    const photoQuality =
-      qualityOutcome.status === "OK" ? qualityOutcome.value : null;
-
-    if (classificationOutcome.status === "FAILED") {
+    if (observationOutcome.status === "FAILED") {
       await recordSessionEvent(sessionId, "PERCEPTION_FAILED", {
-        stage: "classify",
-        reason: classificationOutcome.reason.slice(0, 500),
-        provider: classificationOutcome.provider,
+        stage: "observe",
+        reason: observationOutcome.reason.slice(0, 500),
+        provider: observationOutcome.provider,
       });
 
       await prisma.customerSession.update({
@@ -243,10 +249,10 @@ export async function runPerceptionForSession(
         data: { status: "NEEDS_CALLBACK", shouldBypassPricing: true },
       });
 
-      return { status: "FAILED", reason: classificationOutcome.reason };
+      return { status: "FAILED", reason: observationOutcome.reason };
     }
 
-    const classification = classificationOutcome.value;
+    const { classification, photoQuality } = observationOutcome.value;
     const gate = assessPricingGate({ classification, photoQuality });
 
     const dimensionOutcome = gate.shouldBypassPricing
@@ -267,16 +273,16 @@ export async function runPerceptionForSession(
         issueType: classification.issueType,
         frameMaterialHint: classification.frameMaterialHint,
         confidenceScore: classification.confidence,
-        photoQualityAssessment: photoQuality?.overall ?? null,
-        photoQualityProblems: photoQuality?.problems ?? [],
+        photoQualityAssessment: photoQuality.overall,
+        photoQualityProblems: photoQuality.problems,
         observationSummary: classification.reasoning ?? null,
         isLowConfidence: isLowConfidence(
           classification.confidence,
           confidenceThreshold(),
         ),
         bypassesPricing: gate.shouldBypassPricing,
-        rawModelOutput: asJson(classificationOutcome.rawOutput),
-        modelVersion: `${classificationOutcome.provider}:${classificationOutcome.model}`,
+        rawModelOutput: asJson(observationOutcome.rawOutput),
+        modelVersion: `${observationOutcome.provider}:${observationOutcome.model}`,
       },
     });
 
@@ -315,10 +321,10 @@ export async function runPerceptionForSession(
       assetType: classification.assetType,
       issueType: classification.issueType,
       confidence: classification.confidence,
-      photoQuality: photoQuality?.overall ?? null,
+      photoQuality: photoQuality.overall,
       dimensionsEstimated: dimensions !== null,
-      provider: classificationOutcome.provider,
-      model: classificationOutcome.model,
+      provider: observationOutcome.provider,
+      model: observationOutcome.model,
     });
 
     const closeUpAlreadyHandled =
@@ -339,7 +345,7 @@ export async function runPerceptionForSession(
         shouldBypassPricing: gate.shouldBypassPricing,
         bypassReasons: gate.reasons,
         requestCornerCloseUp:
-          (photoQuality?.shouldRequestCornerCloseUp ?? false) &&
+          photoQuality.shouldRequestCornerCloseUp &&
           !closeUpAlreadyHandled,
       },
     };

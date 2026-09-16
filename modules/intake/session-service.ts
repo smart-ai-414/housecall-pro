@@ -75,9 +75,9 @@ const LOOKING_AT_PHOTOS_MESSAGE =
   "Thanks. Let me look at those photos for a moment.";
 
 const PERCEPTION_UNAVAILABLE_MESSAGE = [
-  "I could not read those photos well enough to say anything useful about them.",
-  "That is not a problem — I have kept them, and one of our glaziers will look at",
-  "them and call you.",
+  "I was not able to read those photos automatically just now. That is not a",
+  "problem and it is nothing you did — I have kept them and passed everything to",
+  "our team, and a glazier will review them and come back to you with an estimate.",
 ].join(" ");
 
 const NO_SCALE_REFERENCE_MESSAGE = [
@@ -547,13 +547,48 @@ export async function analyzeSessionPhotos({
   const outcome = await runPerceptionForSession(sessionId);
 
   if (outcome.status !== "COMPLETED") {
+    const customerIsWaiting =
+      outcome.status === "FAILED" || outcome.customerIsWaiting;
+
+    if (!customerIsWaiting) {
+      const completion = await syncIfIntakeComplete(sessionId);
+
+      return composeSessionView({
+        sessionId,
+        resumeToken,
+        state: session.state,
+        status: completion.status ?? session.status,
+        outstandingQuestions: session.outstandingQuestions,
+        locationName: session.locationName,
+        isComplete: completion.isComplete,
+      });
+    }
+
+    const nextState = appendMessages(
+      session.state,
+      createMessage("assistant", PERCEPTION_UNAVAILABLE_MESSAGE),
+    );
+
+    await prisma.customerSession.update({
+      where: { id: sessionId },
+      data: { shouldBypassPricing: true },
+    });
+
+    await persistState({
+      sessionId,
+      state: nextState,
+      status: "NEEDS_CALLBACK",
+      outstandingQuestions: session.outstandingQuestions,
+      touchCustomerActivity: false,
+    });
+
     const completion = await syncIfIntakeComplete(sessionId);
 
     return composeSessionView({
       sessionId,
       resumeToken,
-      state: session.state,
-      status: completion.status ?? session.status,
+      state: nextState,
+      status: completion.status ?? "NEEDS_CALLBACK",
       outstandingQuestions: session.outstandingQuestions,
       locationName: session.locationName,
       isComplete: completion.isComplete,

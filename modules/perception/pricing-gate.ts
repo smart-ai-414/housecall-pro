@@ -49,7 +49,11 @@ export function assessPricingGate({
     }
   }
 
-  if (photoQuality?.overall === "UNUSABLE") {
+  if (photoQuality === null) {
+    reasons.push(
+      "The photographs were never assessed, so nothing confirms they are good enough to price from.",
+    );
+  } else if (photoQuality.overall === "UNUSABLE") {
     reasons.push("The photographs are not usable.");
   }
 

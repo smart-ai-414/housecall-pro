@@ -14,8 +14,7 @@ export function registerBuiltInProviders(): void {
 registerBuiltInProviders();
 
 export {
-  assessPhotoQuality,
-  classify,
+  observe,
   estimateDimensions,
 } from "@/modules/perception/perception-service";
 export * from "@/modules/perception/schemas";

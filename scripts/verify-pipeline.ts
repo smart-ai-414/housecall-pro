@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { config as loadEnv } from "dotenv";
 import sharp from "sharp";
 
@@ -81,10 +83,15 @@ import {
 import { assetTypeSchema } from "../modules/perception/schemas";
 import { resolveProviderName } from "../modules/perception/provider-registry";
 import {
-  classify,
+  observe,
   PERCEPTION_MAX_ATTEMPTS,
 } from "../modules/perception/perception-service";
-import type { PerceptionProvider } from "../modules/perception/types";
+import {
+  isRetryable,
+  PerceptionRequestError,
+  PerceptionUnavailableError,
+  type PerceptionProvider,
+} from "../modules/perception/types";
 
 let failures = 0;
 
@@ -558,11 +565,11 @@ async function main() {
 
   check(
     "Defaults to Gemini, as the plan specifies",
-    resolveProviderName("classify", {}) === "gemini",
+    resolveProviderName("observe", {}) === "gemini",
   );
   check(
     "One variable reroutes every function",
-    resolveProviderName("classify", { PERCEPTION_PROVIDER: "anthropic" }) ===
+    resolveProviderName("observe", { PERCEPTION_PROVIDER: "anthropic" }) ===
       "anthropic",
   );
   check(
@@ -571,7 +578,7 @@ async function main() {
       PERCEPTION_PROVIDER: "gemini",
       PERCEPTION_PROVIDER_DIMENSIONS: "anthropic",
     }) === "anthropic" &&
-      resolveProviderName("classify", {
+      resolveProviderName("observe", {
         PERCEPTION_PROVIDER: "gemini",
         PERCEPTION_PROVIDER_DIMENSIONS: "anthropic",
       }) === "gemini",
@@ -579,7 +586,7 @@ async function main() {
 
   let rejectedUnknownProvider = false;
   try {
-    resolveProviderName("classify", { PERCEPTION_PROVIDER: "gpt4" });
+    resolveProviderName("observe", { PERCEPTION_PROVIDER: "gpt4" });
   } catch {
     rejectedUnknownProvider = true;
   }
@@ -597,19 +604,16 @@ async function main() {
   let attempts = 0;
   const alwaysFails = {
     name: "always-fails",
-    classify: async () => {
+    observe: async () => {
       attempts += 1;
       throw new Error("provider exploded");
     },
     estimateDimensions: async () => {
       throw new Error("unused");
     },
-    assessPhotoQuality: async () => {
-      throw new Error("unused");
-    },
   } as unknown as PerceptionProvider;
 
-  const failed = await classify(perceptionInput, { provider: alwaysFails });
+  const failed = await observe(perceptionInput, { provider: alwaysFails });
 
   check(
     "A failing provider never throws at the caller",
@@ -625,18 +629,86 @@ async function main() {
     failed.status === "FAILED" && failed.reason.includes("provider exploded"),
   );
 
-  const hangs = {
-    name: "hangs",
-    classify: () => new Promise(() => {}),
-    estimateDimensions: async () => {
-      throw new Error("unused");
+  let permanentAttempts = 0;
+  const rejectsPermanently = {
+    name: "rejects-permanently",
+    observe: async () => {
+      permanentAttempts += 1;
+      throw new PerceptionRequestError(
+        'Gemini responded 400: {"error":{"status":"FAILED_PRECONDITION","message":"User location is not supported for the API use."}}',
+        400,
+      );
     },
-    assessPhotoQuality: async () => {
+    estimateDimensions: async () => {
       throw new Error("unused");
     },
   } as unknown as PerceptionProvider;
 
-  const timedOut = await classify(perceptionInput, {
+  const permanent = await observe(perceptionInput, {
+    provider: rejectsPermanently,
+  });
+
+  check(
+    "A permanent rejection is not retried, so the budget is not burned",
+    permanent.status === "FAILED" && permanentAttempts === 1,
+    `${permanentAttempts} attempt, not ${PERCEPTION_MAX_ATTEMPTS}`,
+  );
+  check(
+    "A region block explains itself rather than reading as a bad photograph",
+    permanent.status === "FAILED" && permanent.reason.includes(
+      "account region is not supported",
+    ),
+  );
+
+  let rateLimitAttempts = 0;
+  const rateLimited = {
+    name: "rate-limited",
+    observe: async () => {
+      rateLimitAttempts += 1;
+      throw new PerceptionRequestError("Gemini responded 429: slow down", 429);
+    },
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  await observe(perceptionInput, { provider: rateLimited });
+
+  check(
+    "A rate limit is still retried, because it may clear",
+    rateLimitAttempts === PERCEPTION_MAX_ATTEMPTS,
+    `${rateLimitAttempts} attempts`,
+  );
+
+  let serverErrorAttempts = 0;
+  const serverError = {
+    name: "server-error",
+    observe: async () => {
+      serverErrorAttempts += 1;
+      throw new PerceptionRequestError("Gemini responded 503: try later", 503);
+    },
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  await observe(perceptionInput, { provider: serverError });
+
+  check(
+    "A server error is still retried",
+    serverErrorAttempts === PERCEPTION_MAX_ATTEMPTS,
+    `${serverErrorAttempts} attempts`,
+  );
+
+  const hangs = {
+    name: "hangs",
+    observe: () => new Promise(() => {}),
+    estimateDimensions: async () => {
+      throw new Error("unused");
+    },
+  } as unknown as PerceptionProvider;
+
+  const timedOut = await observe(perceptionInput, {
     provider: hangs,
     timeoutMs: 50,
   });
@@ -646,27 +718,93 @@ async function main() {
     timedOut.status === "FAILED",
   );
 
+  check(
+    "Permanent client errors are never retried",
+    [400, 401, 403, 404].every(
+      (status) => !isRetryable(new PerceptionRequestError("no", status)),
+    ),
+    "400, 401, 403, 404",
+  );
+  check(
+    "Transient failures are retried",
+    [429, 500, 502, 503].every((status) =>
+      isRetryable(new PerceptionRequestError("maybe", status)),
+    ),
+    "429, 500, 502, 503",
+  );
+  check(
+    "A network error with no status is treated as transient",
+    isRetryable(new Error("ECONNRESET")),
+  );
+  check(
+    "A misconfiguration is not retried",
+    !isRetryable(new PerceptionUnavailableError("no key")),
+  );
+
+  const analyzeSource = readFileSync(
+    "modules/intake/session-service.ts",
+    "utf8",
+  );
+
+  check(
+    "A failed analysis still speaks to the customer, rather than freezing the chat",
+    analyzeSource.includes("PERCEPTION_UNAVAILABLE_MESSAGE") &&
+      /customerIsWaiting[\s\S]{0,900}PERCEPTION_UNAVAILABLE_MESSAGE/.test(
+        analyzeSource,
+      ),
+  );
+  check(
+    "It does not blame the customer's photographs for an outage",
+    !analyzeSource.includes("could not read those photos well enough"),
+  );
+  check(
+    "A stranded session is routed to a callback, not left mid-conversation",
+    /customerIsWaiting[\s\S]{0,900}status: "NEEDS_CALLBACK"/.test(
+      analyzeSource,
+    ),
+  );
+  check(
+    "The lead is still pushed to Housecall Pro after a failed analysis",
+    /PERCEPTION_UNAVAILABLE_MESSAGE[\s\S]{0,900}syncIfIntakeComplete/.test(
+      analyzeSource,
+    ),
+  );
+  check(
+    "An SDK error carrying its own status is classified too",
+    !isRetryable({ status: 401, message: "unauthorized" }) &&
+      isRetryable({ status: 500, message: "server" }),
+    "matches on a status field, not an instanceof",
+  );
+
+  let observeCalls = 0;
   const succeeds = {
     name: "succeeds",
-    classify: async () => ({
-      value: {
-        assetType: "RESIDENTIAL_WINDOW" as const,
-        issueType: "CRACKED" as const,
-        frameMaterialHint: "UNKNOWN" as const,
-        confidence: 0.9,
-      },
-      rawOutput: { assetType: "RESIDENTIAL_WINDOW" },
-      model: "test-model-1",
-    }),
-    estimateDimensions: async () => {
-      throw new Error("unused");
+    observe: async () => {
+      observeCalls += 1;
+      return {
+        value: {
+          classification: {
+            assetType: "RESIDENTIAL_WINDOW" as const,
+            issueType: "CRACKED" as const,
+            frameMaterialHint: "UNKNOWN" as const,
+            confidence: 0.9,
+          },
+          photoQuality: {
+            overall: "GOOD" as const,
+            problems: [],
+            shouldRequestCornerCloseUp: false,
+          },
+        },
+        rawOutput: { classification: { assetType: "RESIDENTIAL_WINDOW" } },
+        model: "test-model-1",
+      };
     },
-    assessPhotoQuality: async () => {
+    estimateDimensions: async () => {
       throw new Error("unused");
     },
   } as unknown as PerceptionProvider;
 
-  const ok = await classify(perceptionInput, { provider: succeeds });
+  const ok = await observe(perceptionInput, { provider: succeeds });
   check(
     "A working provider returns on the first attempt",
     ok.status === "OK" && ok.attempts === 1,
@@ -676,6 +814,14 @@ async function main() {
     ok.status === "OK" &&
       ok.model === "test-model-1" &&
       ok.rawOutput !== undefined,
+  );
+  check(
+    "Classification and photo quality arrive from one call, not two",
+    ok.status === "OK" &&
+      observeCalls === 1 &&
+      ok.value.classification.assetType === "RESIDENTIAL_WINDOW" &&
+      ok.value.photoQuality.overall === "GOOD",
+    `${observeCalls} provider call for both judgements`,
   );
 
   console.log(
@@ -733,6 +879,21 @@ async function main() {
     "A failed classification bypasses pricing rather than pricing nothing",
     assessPricingGate({ classification: null, photoQuality: null })
       .shouldBypassPricing,
+  );
+  check(
+    "An unassessed photograph is never mistaken for a good one",
+    assessPricingGate({
+      classification: { ...usableClassification, confidence: 0.99 },
+      photoQuality: null,
+    }).shouldBypassPricing,
+    "a missing quality verdict must bypass, not pass silently",
+  );
+  check(
+    "It says the photographs were never assessed, rather than blaming the model",
+    assessPricingGate({
+      classification: { ...usableClassification, confidence: 0.99 },
+      photoQuality: null,
+    }).reasons.some((reason) => reason.includes("never assessed")),
   );
   check(
     "The bypass carries a reason a reviewer can read",

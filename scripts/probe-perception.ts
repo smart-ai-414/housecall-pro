@@ -3,9 +3,13 @@ import sharp from "sharp";
 
 loadEnv({ path: ".env", quiet: true });
 
-import { isAnthropicConfigured, isGeminiConfigured } from "../core/config/env";
+import {
+  geminiProxyUrl,
+  isAnthropicConfigured,
+  isGeminiConfigured,
+} from "../core/config/env";
 import "../modules/perception/index";
-import { classify } from "../modules/perception/perception-service";
+import { observe } from "../modules/perception/perception-service";
 import {
   KNOWN_PROVIDER_NAMES,
   resolveProvider,
@@ -48,14 +52,14 @@ async function probe(provider: ProviderName, photo: PerceptionPhoto) {
 
   const startedAt = Date.now();
 
-  const outcome = await classify(
+  const outcome = await observe(
     {
       photos: [photo],
       customerDescription:
         "A reachability probe. This is a synthetic drawing of a cracked window, not a real job.",
     },
     {
-      provider: resolveProvider("classify", { PERCEPTION_PROVIDER: provider }),
+      provider: resolveProvider("observe", { PERCEPTION_PROVIDER: provider }),
     },
   );
 
@@ -64,8 +68,10 @@ async function probe(provider: ProviderName, photo: PerceptionPhoto) {
   if (outcome.status === "OK") {
     console.log(`    REACHABLE — ${elapsed}ms, model ${outcome.model}`);
     console.log(
-      `    Answered: ${outcome.value.assetType} / ${outcome.value.issueType} ` +
-        `at ${outcome.value.confidence.toFixed(2)} confidence`,
+      `    Answered: ${outcome.value.classification.assetType} / ` +
+        `${outcome.value.classification.issueType} at ` +
+        `${outcome.value.classification.confidence.toFixed(2)} confidence, ` +
+        `photos graded ${outcome.value.photoQuality.overall}`,
     );
   } else {
     console.log(
@@ -82,12 +88,13 @@ async function main() {
     "\n  app will actually run on — a datacenter IP can be blocked where a laptop is not.",
   );
 
+  const proxy = geminiProxyUrl();
+  console.log(
+    `\n  GEMINI EGRESS         ${proxy === null ? "direct, no proxy configured" : `via proxy ${new URL(proxy).host}`}`,
+  );
+
   console.log("\n  ROUTING AS CONFIGURED");
-  for (const perceptionFunction of [
-    "classify",
-    "estimateDimensions",
-    "assessPhotoQuality",
-  ] as const) {
+  for (const perceptionFunction of ["observe", "estimateDimensions"] as const) {
     console.log(
       `    ${perceptionFunction.padEnd(20)} ${resolveProviderName(perceptionFunction)}`,
     );

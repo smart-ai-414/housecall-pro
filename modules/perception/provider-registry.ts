@@ -11,9 +11,8 @@ export type ProviderName = (typeof KNOWN_PROVIDER_NAMES)[number];
 export const DEFAULT_PROVIDER: ProviderName = "gemini";
 
 const FUNCTION_ENV_KEYS: Record<PerceptionFunction, string> = {
-  classify: "PERCEPTION_PROVIDER_CLASSIFY",
+  observe: "PERCEPTION_PROVIDER_OBSERVE",
   estimateDimensions: "PERCEPTION_PROVIDER_DIMENSIONS",
-  assessPhotoQuality: "PERCEPTION_PROVIDER_PHOTO_QUALITY",
 };
 
 const FALLBACK_ENV_KEY = "PERCEPTION_PROVIDER";

@@ -71,12 +71,14 @@ const HONEST_CONFIDENCE = [
   "below 0.6.",
 ].join("\n");
 
-export function classificationPrompt(input: PerceptionInput): string {
+export function observationPrompt(input: PerceptionInput): string {
   return [
     OBSERVER_ROLE,
     "",
-    "Classify the job shown in these photographs. Read them together as one job, not",
-    "as separate scenes: they are different views of the same opening.",
+    "Read these photographs together as one job, not as separate scenes: they are",
+    "different views of the same opening. Report two separate things about them.",
+    "",
+    "FIRST, under classification, say what the job is.",
     "",
     "Asset type, choose exactly one:",
     ASSET_FAMILIES,
@@ -92,8 +94,26 @@ export function classificationPrompt(input: PerceptionInput): string {
     HONEST_CONFIDENCE,
     "Report one confidence between 0 and 1 for the classification as a whole.",
     "",
-    "In reasoning, write one or two plain sentences a glazier could read at a glance,",
-    "naming what you saw that decided it.",
+    "In classification reasoning, write one or two plain sentences a glazier could",
+    "read at a glance, naming what you saw that decided it.",
+    "",
+    "SECOND, under photoQuality, judge the photographs themselves.",
+    "",
+    "This is a separate judgement from the classification, and the two do not have to",
+    "agree. Grade what is in front of you, not how confident you felt above: a sharp",
+    "photograph of an opening you still cannot classify is GOOD, and a lucky guess",
+    "from a dark blurred photograph is still POOR.",
+    "",
+    "Grade overall as GOOD, ADEQUATE, POOR or UNUSABLE. Grade UNUSABLE when the",
+    "photographs do not show a glazed opening at all, or are too dark, blurred or",
+    "obstructed to read anything from. List specific problems such as glare, motion",
+    "blur, the opening being cut off, or the photograph showing something other than",
+    "the damaged glass.",
+    "",
+    "Set shouldRequestCornerCloseUp only when the frame type or the glass type cannot",
+    "be told from what is here AND a close-up of one corner of the glass would settle",
+    "it. Asking costs the customer effort, so do not ask when the answer is already",
+    "visible or when a close-up would not help.",
     "",
     `The customer wrote: ${JSON.stringify(input.customerDescription)}`,
   ].join("\n");
@@ -130,24 +150,3 @@ export function dimensionPrompt(
   ].join("\n");
 }
 
-export function photoQualityPrompt(input: PerceptionInput): string {
-  return [
-    OBSERVER_ROLE,
-    "",
-    "Judge whether these photographs are good enough to classify the job and read",
-    "its size from a scale reference.",
-    "",
-    "Grade overall as GOOD, ADEQUATE, POOR or UNUSABLE. Grade UNUSABLE when the",
-    "photographs do not show a glazed opening at all, or are too dark, blurred or",
-    "obstructed to read anything from. List specific problems such as glare, motion",
-    "blur, the opening being cut off, or the photograph showing something other than",
-    "the damaged glass.",
-    "",
-    "Set shouldRequestCornerCloseUp only when the frame type or the glass type cannot",
-    "be told from what is here AND a close-up of one corner of the glass would settle",
-    "it. Asking costs the customer effort, so do not ask when the answer is already",
-    "visible or when a close-up would not help.",
-    "",
-    `The customer wrote: ${JSON.stringify(input.customerDescription)}`,
-  ].join("\n");
-}

@@ -60,7 +60,9 @@ function describePricingBypass(
   } | null,
 ): string[] {
   if (classification === null) {
-    return ["The assistant could not classify the job at all."];
+    return [
+      "Automatic photo analysis was unavailable for this job, so nothing was classified. The photographs are linked above and need reading by hand.",
+    ];
   }
 
   const reasons: string[] = [];

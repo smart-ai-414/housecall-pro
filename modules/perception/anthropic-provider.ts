@@ -2,17 +2,14 @@ import Anthropic from "@anthropic-ai/sdk";
 
 import { anthropicEnv } from "@/core/config/env";
 import {
-  classificationPrompt,
   dimensionPrompt,
-  photoQualityPrompt,
+  observationPrompt,
 } from "@/modules/perception/prompts";
 import {
-  classificationResultSchema,
   dimensionResultSchema,
-  photoQualityResultSchema,
-  type ClassificationResult,
+  observationResultSchema,
   type DimensionResult,
-  type PhotoQualityResult,
+  type ObservationResult,
 } from "@/modules/perception/schemas";
 import {
   PerceptionUnavailableError,
@@ -119,16 +116,33 @@ async function callClaude({
   return { parsed: readFirstJsonText(message), model: message.model };
 }
 
-const CLASSIFICATION_RESPONSE_SCHEMA = {
+const OBSERVATION_RESPONSE_SCHEMA = {
   type: "object",
   properties: {
-    assetType: { type: "string" },
-    issueType: { type: "string" },
-    frameMaterialHint: { type: "string" },
-    confidence: { type: "number" },
-    reasoning: { type: "string" },
+    classification: {
+      type: "object",
+      properties: {
+        assetType: { type: "string" },
+        issueType: { type: "string" },
+        frameMaterialHint: { type: "string" },
+        confidence: { type: "number" },
+        reasoning: { type: "string" },
+      },
+      required: ["assetType", "issueType", "frameMaterialHint", "confidence"],
+      additionalProperties: false,
+    },
+    photoQuality: {
+      type: "object",
+      properties: {
+        overall: { type: "string" },
+        problems: { type: "array", items: { type: "string" } },
+        shouldRequestCornerCloseUp: { type: "boolean" },
+      },
+      required: ["overall", "problems", "shouldRequestCornerCloseUp"],
+      additionalProperties: false,
+    },
   },
-  required: ["assetType", "issueType", "frameMaterialHint", "confidence"],
+  required: ["classification", "photoQuality"],
   additionalProperties: false,
 };
 
@@ -146,17 +160,6 @@ const DIMENSION_RESPONSE_SCHEMA = {
   additionalProperties: false,
 };
 
-const PHOTO_QUALITY_RESPONSE_SCHEMA = {
-  type: "object",
-  properties: {
-    overall: { type: "string" },
-    problems: { type: "array", items: { type: "string" } },
-    shouldRequestCornerCloseUp: { type: "boolean" },
-  },
-  required: ["overall", "problems", "shouldRequestCornerCloseUp"],
-  additionalProperties: false,
-};
-
 function assertPhotosPresent(input: PerceptionInput): void {
   if (input.photos.length === 0) {
     throw new PerceptionUnavailableError(
@@ -171,9 +174,9 @@ function withoutNulls(value: unknown): unknown {
   }
 
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).filter(
-      ([, entry]) => entry !== null,
-    ),
+    Object.entries(value as Record<string, unknown>)
+      .filter(([, entry]) => entry !== null)
+      .map(([key, entry]) => [key, withoutNulls(entry)]),
   );
 }
 
@@ -192,17 +195,17 @@ export function createAnthropicProvider(): PerceptionProvider {
   return {
     name: "anthropic",
 
-    async classify(
+    async observe(
       input: PerceptionInput,
-    ): Promise<PerceptionObservation<ClassificationResult>> {
+    ): Promise<PerceptionObservation<ObservationResult>> {
       assertPhotosPresent(input);
 
       return observed(
-        (raw) => classificationResultSchema.parse(raw),
+        (raw) => observationResultSchema.parse(raw),
         await callClaude({
-          prompt: classificationPrompt(input),
+          prompt: observationPrompt(input),
           photos: input.photos,
-          responseSchema: CLASSIFICATION_RESPONSE_SCHEMA,
+          responseSchema: OBSERVATION_RESPONSE_SCHEMA,
         }),
       );
     },
@@ -222,19 +225,5 @@ export function createAnthropicProvider(): PerceptionProvider {
       );
     },
 
-    async assessPhotoQuality(
-      input: PerceptionInput,
-    ): Promise<PerceptionObservation<PhotoQualityResult>> {
-      assertPhotosPresent(input);
-
-      return observed(
-        (raw) => photoQualityResultSchema.parse(raw),
-        await callClaude({
-          prompt: photoQualityPrompt(input),
-          photos: input.photos,
-          responseSchema: PHOTO_QUALITY_RESPONSE_SCHEMA,
-        }),
-      );
-    },
   };
 }
